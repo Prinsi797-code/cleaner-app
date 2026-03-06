@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Information Property List</key>
+	<dict>
+		<key>Privacy - Contacts Usage Description</key>
+		<string>We need access to your contacts to find duplicates, incomplete contacts, and manage your contact list.</string>
+		<key>Privacy - Photo Library Additions Usage Description</key>
+		<string>We need permission to delete duplicate photos and free up your storage.</string>
+		<key>Privacy - Photo Library Usage Description</key>
+		<string>We need access to your photos to find and remove duplicate face photos and videos.</string>
+	</dict>
+</dict>
+</plist>
