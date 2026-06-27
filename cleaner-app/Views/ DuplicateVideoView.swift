@@ -1,12 +1,5 @@
-//
-//   DuplicateVideoView.swift
-//  cleaner-app
-//
-//  Created by Hevin Technoweb on 05/03/26.
-//
-
 //  DuplicateVideoView.swift
-//  Duplicate + Similar video detection and deletion
+//  cleaner-app
 
 import SwiftUI
 import Combine
@@ -21,8 +14,8 @@ struct VideoGroupItem: Identifiable {
     var totalSize: Int64 { videos.reduce(0) { $0 + $1.fileSize } }
 
     enum GroupType {
-        case duplicate  // exact same hash
-        case similar    // same duration ±1s + similar size
+        case duplicate
+        case similar
     }
 }
 
@@ -74,12 +67,10 @@ class DuplicateVideoService {
                 }
 
                 grp.notify(queue: .main) {
-                    // Exact duplicates
                     var groups: [VideoGroupItem] = hashMap.values
                         .filter { $0.count >= 2 }
                         .map { VideoGroupItem(type: .duplicate, videos: $0.sorted { $0.fileSize > $1.fileSize }) }
 
-                    // Similar videos: same duration ±2s, size within 20%
                     let usedIDs = Set(groups.flatMap { $0.videos.map(\.id) })
                     let remaining = videos.filter { !usedIDs.contains($0.id) }
                     groups += self.findSimilarVideos(remaining)
@@ -98,13 +89,11 @@ class DuplicateVideoService {
         for base in sorted {
             if used.contains(base.id) { continue }
             var group = [base]; used.insert(base.id)
-
             for candidate in sorted {
                 if used.contains(candidate.id) { continue }
-                let durDiff  = abs(base.duration - candidate.duration)
-                let sizeDiff = abs(base.fileSize - candidate.fileSize)
+                let durDiff   = abs(base.duration - candidate.duration)
+                let sizeDiff  = abs(base.fileSize - candidate.fileSize)
                 let sizeRatio = base.fileSize > 0 ? Double(sizeDiff) / Double(base.fileSize) : 1
-                // Similar = duration within 2s AND size within 30%
                 if durDiff <= 2.0 && sizeRatio <= 0.30 {
                     group.append(candidate); used.insert(candidate.id)
                 }
@@ -116,20 +105,15 @@ class DuplicateVideoService {
         return groups
     }
 
-    // Quick hash using first 512KB of video data
     private func quickHash(_ asset: PHAsset, completion: @escaping (String?) -> Void) {
         let res = PHAssetResource.assetResources(for: asset)
         guard let resource = res.first else { completion(nil); return }
-
         var data = Data()
         let opts  = PHAssetResourceRequestOptions()
         opts.isNetworkAccessAllowed = true
-
         PHAssetResourceManager.default().requestData(
             for: resource, options: opts,
-            dataReceivedHandler: { chunk in
-                if data.count < 524_288 { data.append(chunk) } // first 512KB
-            },
+            dataReceivedHandler: { chunk in if data.count < 524_288 { data.append(chunk) } },
             completionHandler: { error in
                 guard error == nil, !data.isEmpty else { completion(nil); return }
                 let hash = SHA256.hash(data: data)
@@ -206,45 +190,49 @@ class DuplicateVideoViewModel: ObservableObject {
 }
 
 // MARK: - View
+// NavigationView HATA DIYA — MoreView ka NavigationView use hoga
 struct DuplicateVideoView: View {
     @StateObject private var vm = DuplicateVideoViewModel()
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                if vm.isScanning {
-                    ScanningView(text: vm.progressText,
-                                 progress: vm.total > 0 ? Double(vm.progress) / Double(vm.total) : 0)
-                } else if vm.groups.isEmpty {
-                    EmptyStateView(icon: "video.badge.checkmark", title: "No Duplicate Videos",
-                                   subtitle: "Tap Scan to find duplicate or similar videos",
-                                   buttonTitle: "Scan Now") { vm.startScan() }
-                } else {
-                    mainBody
-                }
-                if let msg = vm.toastMessage {
-                    VStack { Spacer(); ToastView(message: msg).padding(.bottom, 90) }
-                        .animation(.spring(), value: vm.toastMessage)
+        ZStack {
+            if vm.isScanning {
+                ScanningView(text: vm.progressText,
+                             progress: vm.total > 0 ? Double(vm.progress) / Double(vm.total) : 0)
+            } else if vm.groups.isEmpty {
+                EmptyStateView(icon: "video.badge.checkmark", title: "No Duplicate Videos",
+                               subtitle: "Tap Scan to find duplicate or similar videos",
+                               buttonTitle: "Scan Now") { vm.startScan() }
+            } else {
+                mainBody
+            }
+            if let msg = vm.toastMessage {
+                VStack { Spacer(); ToastView(message: msg).padding(.bottom, 20) }
+                    .animation(.spring(), value: vm.toastMessage)
+            }
+        }
+        .navigationTitle("Dup Videos")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                if !vm.groups.isEmpty {
+                    Button("Rescan") { vm.startScan() }
+                        .padding(.leading, 16)
                 }
             }
-            .navigationTitle("Dup Videos")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    if !vm.groups.isEmpty { Button("Rescan") { vm.startScan() } }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if !vm.selectedIDs.isEmpty {
-                        Button(role: .destructive) { vm.showDeleteAlert = true } label: {
-                            Image(systemName: "trash").foregroundColor(.red)
-                        }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if !vm.selectedIDs.isEmpty {
+                    Button(role: .destructive) { vm.showDeleteAlert = true } label: {
+                        Image(systemName: "trash").foregroundColor(.red)
                     }
                 }
             }
-            .alert("Delete \(vm.selectedIDs.count) Videos?", isPresented: $vm.showDeleteAlert) {
-                Button("Delete", role: .destructive) { vm.deleteSelected() }
-                Button("Cancel", role: .cancel) {}
-            } message: { Text("Free \(formatBytes(vm.totalSelectedSize)). Cannot be undone.") }
         }
+        .alert("Delete \(vm.selectedIDs.count) Videos?", isPresented: $vm.showDeleteAlert) {
+            Button("Delete", role: .destructive) { vm.deleteSelected() }
+            Button("Cancel", role: .cancel) {}
+        } message: { Text("Free \(formatBytes(vm.totalSelectedSize)). Cannot be undone.") }
+//        .toolbar(.hidden, for: .tabBar)
     }
 
     private var mainBody: some View {
@@ -264,6 +252,9 @@ struct DuplicateVideoView: View {
             }
             .padding(.horizontal).padding(.vertical, 10)
             .background(Color(.secondarySystemBackground))
+
+            // ✅ Native Ad
+            SmartNativeAdView(screen: .dupVideo)
 
             List {
                 ForEach(vm.groups) { group in
@@ -331,14 +322,12 @@ struct DupVideoRow: View {
                 .frame(width: 70, height: 52).clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay(RoundedRectangle(cornerRadius: 8)
                     .stroke(isSelected ? Color.red : Color.clear, lineWidth: 2))
-
                 Text(formatDuration(video.duration))
                     .font(.system(size: 9, weight: .semibold)).foregroundColor(.white)
                     .padding(.horizontal, 3).padding(.vertical, 1)
                     .background(Color.black.opacity(0.7))
                     .clipShape(RoundedRectangle(cornerRadius: 3)).padding(3)
             }
-
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     if isBest {
@@ -351,7 +340,6 @@ struct DupVideoRow: View {
                 Text(formatBytes(video.fileSize)).font(.caption).bold().foregroundColor(.orange)
             }
             Spacer()
-
             ZStack {
                 Circle().stroke(isSelected ? Color.red : Color.gray.opacity(0.4), lineWidth: 2)
                     .frame(width: 24, height: 24)

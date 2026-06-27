@@ -1,12 +1,4 @@
-//
 //  HomeViewModel.swift
-//  cleaner-app
-//
-//  Created by Hevin Technoweb on 05/03/26.
-//
-
-//  HomeViewModel.swift
-
 import Foundation
 import Combine
 import Photos

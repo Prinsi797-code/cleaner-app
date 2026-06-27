@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E71848F12F6E701E00920B2E /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = E71848F02F6E701E00920B2E /* GoogleMobileAds */; };
+		E7FA0F912F6E7903008F3B76 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F902F6E7903008F3B76 /* FirebaseAI */; };
+		E7FA0F932F6E7903008F3B76 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F922F6E7903008F3B76 /* FirebaseAILogic */; };
+		E7FA0F952F6E7903008F3B76 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F942F6E7903008F3B76 /* FirebaseAnalytics */; };
+		E7FA0F972F6E7903008F3B76 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F962F6E7903008F3B76 /* FirebaseAnalyticsCore */; };
+		E7FA0F992F6E7903008F3B76 /* FirebaseAnalyticsIdentitySupport in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F982F6E7903008F3B76 /* FirebaseAnalyticsIdentitySupport */; };
+		E7FA0F9C2F6E7CD1008F3B76 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = E7FA0F9B2F6E7CD1008F3B76 /* FirebaseRemoteConfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E7971AF52F59A0A6005531B6 /* cleaner-app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cleaner-app.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +46,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E7FA0F932F6E7903008F3B76 /* FirebaseAILogic in Frameworks */,
+				E71848F12F6E701E00920B2E /* GoogleMobileAds in Frameworks */,
+				E7FA0F992F6E7903008F3B76 /* FirebaseAnalyticsIdentitySupport in Frameworks */,
+				E7FA0F9C2F6E7CD1008F3B76 /* FirebaseRemoteConfig in Frameworks */,
+				E7FA0F972F6E7903008F3B76 /* FirebaseAnalyticsCore in Frameworks */,
+				E7FA0F952F6E7903008F3B76 /* FirebaseAnalytics in Frameworks */,
+				E7FA0F912F6E7903008F3B76 /* FirebaseAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				E7971AF72F59A0A6005531B6 /* cleaner-app */,
+				E7FA0F9A2F6E7CD1008F3B76 /* Frameworks */,
 				E7971AF62F59A0A6005531B6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +74,13 @@
 				E7971AF52F59A0A6005531B6 /* cleaner-app.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E7FA0F9A2F6E7CD1008F3B76 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -78,6 +103,13 @@
 			);
 			name = "cleaner-app";
 			packageProductDependencies = (
+				E71848F02F6E701E00920B2E /* GoogleMobileAds */,
+				E7FA0F902F6E7903008F3B76 /* FirebaseAI */,
+				E7FA0F922F6E7903008F3B76 /* FirebaseAILogic */,
+				E7FA0F942F6E7903008F3B76 /* FirebaseAnalytics */,
+				E7FA0F962F6E7903008F3B76 /* FirebaseAnalyticsCore */,
+				E7FA0F982F6E7903008F3B76 /* FirebaseAnalyticsIdentitySupport */,
+				E7FA0F9B2F6E7CD1008F3B76 /* FirebaseRemoteConfig */,
 			);
 			productName = "cleaner-app";
 			productReference = E7971AF52F59A0A6005531B6 /* cleaner-app.app */;
@@ -107,6 +139,10 @@
 			);
 			mainGroup = E7971AEC2F59A0A6005531B6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E71848EF2F6E701E00920B2E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E7971AF62F59A0A6005531B6 /* Products */;
 			projectDirPath = "";
@@ -264,12 +300,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = KKLHX3R5SK;
+				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "cleaner-app/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cleanify AI";
 				INFOPLIST_KEY_NSContactsUsageDescription = "We need access to your contacts to show the contact count on the home screen.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need permission to delete duplicate photos and free up your storage.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photos to find and remove duplicate face photos and videos.";
@@ -282,9 +320,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.manishdhakecha.rafinewapp2.cleaner-app";
+				MARKETING_VERSION = 1.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.princi607.CleanerApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -300,12 +339,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = KKLHX3R5SK;
+				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "cleaner-app/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cleanify AI";
 				INFOPLIST_KEY_NSContactsUsageDescription = "We need access to your contacts to show the contact count on the home screen.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need permission to delete duplicate photos and free up your storage.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photos to find and remove duplicate face photos and videos.";
@@ -318,9 +359,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.manishdhakecha.rafinewapp2.cleaner-app";
+				MARKETING_VERSION = 1.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.princi607.CleanerApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -353,6 +395,63 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E71848EF2F6E701E00920B2E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.1.0;
+			};
+		};
+		E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E71848F02F6E701E00920B2E /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E71848EF2F6E701E00920B2E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		E7FA0F902F6E7903008F3B76 /* FirebaseAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAI;
+		};
+		E7FA0F922F6E7903008F3B76 /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAILogic;
+		};
+		E7FA0F942F6E7903008F3B76 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		E7FA0F962F6E7903008F3B76 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
+		};
+		E7FA0F982F6E7903008F3B76 /* FirebaseAnalyticsIdentitySupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsIdentitySupport;
+		};
+		E7FA0F9B2F6E7CD1008F3B76 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FA0F8F2F6E7903008F3B76 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E7971AED2F59A0A6005531B6 /* Project object */;
 }

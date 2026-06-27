@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~3347511713</string>
 	<key>Information Property List</key>
 	<dict>
 		<key>Privacy - Contacts Usage Description</key>
@@ -11,5 +13,12 @@
 		<key>Privacy - Photo Library Usage Description</key>
 		<string>We need access to your photos to find and remove duplicate face photos and videos.</string>
 	</dict>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>

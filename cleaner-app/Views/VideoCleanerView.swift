@@ -114,8 +114,9 @@ struct VideoCleanerView: View {
                 }
             }
             .navigationTitle("Videos")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         ForEach(VideoCleanerViewModel.SortOption.allCases, id: \.self) { opt in
                             Button(opt.rawValue) { vm.sortBy = opt }
@@ -135,6 +136,7 @@ struct VideoCleanerView: View {
                 Button("Cancel", role: .cancel) {}
             } message: { Text("Free \(formatBytes(vm.totalSelectedSize)). Cannot be undone.") }
             .onAppear { if vm.videos.isEmpty { vm.load() } }
+//            .toolbar(.hidden, for: .tabBar)  // ← add this
         }
     }
 

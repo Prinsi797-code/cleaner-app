@@ -25,11 +25,12 @@ private class CacheService {
             var cats: [CacheCategory] = []
 
             // 1. App Caches directory
+            // App Caches directory - SIRF directory size, URLCache alag
             if let url = fm.urls(for: .cachesDirectory, in: .userDomainMask).first {
-                let size = self.size(url) + Int64(URLCache.shared.currentDiskUsage)
-                if size > 0 {
+                let dirSize = self.size(url)  // URLCache.shared.currentDiskUsage mat add karo
+                if dirSize > 0 {
                     cats.append(CacheCategory(name: "App Cache", icon: "internaldrive.fill",
-                                              colorHex: "#FF6B35", paths: [url], sizeBytes: size))
+                                              colorHex: "#FF6B35", paths: [url], sizeBytes: dirSize))
                 }
             }
             // 2. Temp directory
@@ -65,10 +66,22 @@ private class CacheService {
 
     func clear(_ cats: [CacheCategory], completion: @escaping (Int64) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            let freed = cats.reduce(Int64(0)) { $0 + $1.sizeBytes }
-            cats.forEach { cat in cat.paths.forEach { self.clearDir($0) } }
+            var actuallyFreed: Int64 = 0
+            
+            cats.forEach { cat in
+                cat.paths.forEach { url in
+                    let before = self.size(url)
+                    self.clearDir(url)
+                    let after = self.size(url)
+                    actuallyFreed += (before - after)
+                }
+            }
+            
             URLCache.shared.removeAllCachedResponses()
-            DispatchQueue.main.async { completion(freed) }
+            URLCache.shared.diskCapacity = 0
+            URLCache.shared.memoryCapacity = 0
+            
+            DispatchQueue.main.async { completion(actuallyFreed) }
         }
     }
 
@@ -85,8 +98,16 @@ private class CacheService {
 
     private func clearDir(_ url: URL) {
         let files = (try? FileManager.default.contentsOfDirectory(
-            at: url, includingPropertiesForKeys: nil)) ?? []
-        files.forEach { try? FileManager.default.removeItem(at: $0) }
+            at: url, includingPropertiesForKeys: nil,
+            options: .skipsHiddenFiles)) ?? []
+        
+        files.forEach { fileURL in
+            do {
+                try FileManager.default.removeItem(at: fileURL)
+            } catch {
+                print("Could not delete: \(fileURL), error: \(error)")
+            }
+        }
     }
 }
 
@@ -98,15 +119,20 @@ class AppCacheViewModel: ObservableObject {
     @Published var isClearing  = false
     @Published var freedBytes: Int64 = 0
     @Published var toastMessage: String?
+    @Published var hasScanned: Bool = false
 
-    var selected: [CacheCategory] { categories.filter(\.isSelected) }
+    // ← YEH MISSING THE - ADD KARO
+    var selected: [CacheCategory] { categories.filter { $0.isSelected } }
     var totalSelected: Int64 { selected.reduce(0) { $0 + $1.sizeBytes } }
-    var totalAll: Int64      { categories.reduce(0) { $0 + $1.sizeBytes } }
+    var totalAll: Int64 { categories.reduce(0) { $0 + $1.sizeBytes } }
 
     func scan() {
-        isScanning = true; categories = []
+        isScanning = true
+        categories = []
         CacheService.shared.scan { [weak self] cats in
-            self?.categories = cats; self?.isScanning = false
+            self?.categories = cats
+            self?.isScanning = false
+            self?.hasScanned = true
         }
     }
 
@@ -121,6 +147,7 @@ class AppCacheViewModel: ObservableObject {
             self?.freedBytes  = freed
             self?.isClearing  = false
             self?.categories.removeAll { $0.isSelected }
+            self?.hasScanned = true
             self?.toast("✅ Freed \(formatBytes(freed))!")
         }
     }
@@ -140,11 +167,17 @@ struct AppCacheView: View {
             ZStack {
                 if vm.isScanning {
                     ScanningView(text: "Scanning cached data…", progress: 0)
-                } else if vm.categories.isEmpty {
+                } else if vm.categories.isEmpty && vm.freedBytes == 0 && !vm.hasScanned {
+                    EmptyStateView(
+                        icon: "internaldrive",
+                        title: "Check Your Cache",
+                        subtitle: "Tap Scan to check for clearable data",
+                        buttonTitle: "Scan Now") { vm.scan() }
+                } else if vm.categories.isEmpty && vm.hasScanned {
                     EmptyStateView(
                         icon: vm.freedBytes > 0 ? "sparkles" : "internaldrive",
                         title: vm.freedBytes > 0 ? "All Clean! 🎉" : "Nothing Found",
-                        subtitle: vm.freedBytes > 0 ? "Freed \(formatBytes(vm.freedBytes))" : "Tap Scan to check",
+                        subtitle: vm.freedBytes > 0 ? "Freed \(formatBytes(vm.freedBytes))" : "No clearable cache found",
                         buttonTitle: "Scan Again") { vm.scan() }
                 } else {
                     cacheBody
@@ -154,14 +187,32 @@ struct AppCacheView: View {
                         .animation(.spring(), value: vm.toastMessage)
                 }
             }
-            .navigationTitle("Cache & Storage")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Scan") { vm.scan() }
-                }
-            }
-            .onAppear { vm.scan() }
         }
+        .navigationTitle("Cache & Storage")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { vm.scan() }) {
+                    Text("Scan")
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .clipShape(Capsule())
+                }
+                .disabled(vm.isScanning)
+                .animation(nil, value: vm.isScanning)
+                .transaction { t in t.animation = nil }
+            }
+            
+        }
+//        .toolbar(.hidden, for: .tabBar)
+        
+        
+        .onAppear {
+            if !vm.hasScanned { vm.scan() }
+        }
+//
     }
 
     private var cacheBody: some View {
@@ -175,14 +226,22 @@ struct AppCacheView: View {
                 }
                 GeometryReader { geo in
                     HStack(spacing: 2) {
-                        ForEach(vm.categories) { cat in
-                            let w = vm.totalAll > 0
-                                ? geo.size.width * CGFloat(cat.sizeBytes) / CGFloat(vm.totalAll)
-                                : CGFloat(0)
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hexString: cat.colorHex))
-                                .frame(width: max(w, 4))
+                        List {
+                            ForEach(vm.categories) { cat in
+                                CacheRow(cat: Binding(
+                                    get: { vm.categories.first(where: { $0.id == cat.id }) ?? cat },
+                                    set: { newVal in
+                                        if let i = vm.categories.firstIndex(where: { $0.id == cat.id }) {
+                                            vm.categories[i] = newVal
+                                        }
+                                    }
+                                )) { vm.toggle(cat.id) }
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                            }
                         }
+                        .listStyle(.plain)
                     }
                 }
                 .frame(height: 10).clipShape(Capsule())
@@ -254,3 +313,95 @@ struct CacheRow: View {
         .onTapGesture { onTap() }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

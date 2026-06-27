@@ -1,12 +1,6 @@
-//
 //  ContactsView.swift
 //  cleaner-app
-//
 //  Created by Hevin Technoweb on 06/03/26.
-//
-
-//  ContactsView.swift
-//  Duplicate Contacts + Incomplete Contacts + All Contacts
 
 import SwiftUI
 import Combine
@@ -36,7 +30,7 @@ struct ContactItem: Identifiable {
 struct ContactGroup: Identifiable {
     let id = UUID()
     var contacts: [ContactItem]
-    var matchReason: String   // e.g. "Same phone" / "Same name"
+    var matchReason: String
 }
 
 // MARK: - Service
@@ -72,21 +66,17 @@ class ContactsService {
         }
     }
 
-    // ── Duplicates: same phone OR same name ─────────────────────────────────
     func findDuplicates(_ all: [ContactItem]) -> [ContactGroup] {
         var phoneMap: [String: [ContactItem]] = [:]
         var nameMap:  [String: [ContactItem]] = [:]
 
         for item in all {
-            // Normalize phone: digits only
             for ph in item.contact.phoneNumbers {
                 let digits = ph.value.stringValue.filter { $0.isNumber }
                 if digits.count >= 7 {
-                    let key = String(digits.suffix(10))
-                    phoneMap[key, default: []].append(item)
+                    phoneMap[String(digits.suffix(10)), default: []].append(item)
                 }
             }
-            // Normalize name
             let name = item.fullName.lowercased().trimmingCharacters(in: .whitespaces)
             if !name.isEmpty { nameMap[name, default: []].append(item) }
         }
@@ -94,7 +84,6 @@ class ContactsService {
         var used   = Set<String>()
         var groups = [ContactGroup]()
 
-        // Phone duplicates first
         for (_, contacts) in phoneMap where contacts.count >= 2 {
             let ids = contacts.map(\.id)
             if ids.allSatisfy({ used.contains($0) }) { continue }
@@ -102,7 +91,6 @@ class ContactsService {
             groups.append(ContactGroup(contacts: contacts.sorted { $0.displayName < $1.displayName },
                                        matchReason: "Same phone number"))
         }
-        // Name duplicates
         for (_, contacts) in nameMap where contacts.count >= 2 {
             let newOnes = contacts.filter { !used.contains($0.id) }
             if newOnes.count < 2 { continue }
@@ -113,12 +101,10 @@ class ContactsService {
         return groups.sorted { $0.contacts.count > $1.contacts.count }
     }
 
-    // ── Incomplete: missing name OR phone ───────────────────────────────────
     func findIncomplete(_ all: [ContactItem]) -> [ContactItem] {
         all.filter { !$0.hasName || !$0.hasPhone }
     }
 
-    // ── Delete contacts ──────────────────────────────────────────────────────
     func delete(_ ids: Set<String>, completion: @escaping (Bool, Int) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             let store   = CNContactStore()
@@ -136,21 +122,20 @@ class ContactsService {
     }
 }
 
-// MARK: - Main Contacts Hub View
 struct ContactsHubView: View {
     @State private var selectedTab: ContactTab = .duplicate
     @StateObject private var vm = ContactsViewModel()
 
     enum ContactTab: String, CaseIterable {
-        case duplicate   = "Duplicate"
-        case incomplete  = "Incomplete"
-        case all         = "All"
+        case duplicate  = "Duplicate"
+        case incomplete = "Incomplete"
+        case all        = "All"
     }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Total count bar
+                // Stats bar
                 HStack(spacing: 0) {
                     VStack(spacing: 2) {
                         Text("\(vm.allContacts.count)").font(.title2).bold().foregroundColor(.purple)
@@ -172,14 +157,17 @@ struct ContactsHubView: View {
                 }
                 .padding(.vertical, 12)
                 .background(Color(.secondarySystemBackground))
-
+                
                 // Segment picker
                 Picker("Tab", selection: $selectedTab) {
                     ForEach(ContactTab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal).padding(.vertical, 8)
-
+                
+                SmartNativeAdView(screen: .contact)
+                
+                // Tab content
                 if vm.isLoading {
                     ScanningView(text: "Loading contacts…", progress: 0)
                 } else {
@@ -190,25 +178,39 @@ struct ContactsHubView: View {
                     }
                 }
             }
-            .navigationTitle("Contacts")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Refresh") { vm.load() }
+        }
+        .navigationTitle("Contacts")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { vm.load() }) {
+                    Text("Refresh")
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .clipShape(Capsule())
                 }
+                .disabled(vm.isLoading)
+                .animation(nil, value: vm.isLoading)
+                .transaction { t in t.animation = nil }
             }
-            .onAppear { vm.load() }
+        }
+//        .toolbar(.hidden, for: .tabBar)
+        .onAppear {
+            if vm.allContacts.isEmpty { vm.load() }
         }
     }
 }
 
-// MARK: - ViewModel (shared across all tabs)
+// MARK: - ViewModel
 @MainActor
 class ContactsViewModel: ObservableObject {
-    @Published var allContacts:      [ContactItem]   = []
-    @Published var duplicateGroups:  [ContactGroup]  = []
-    @Published var incompleteContacts: [ContactItem] = []
-    @Published var isLoading         = false
-    @Published var toastMessage:     String?
+    @Published var allContacts:        [ContactItem]  = []
+    @Published var duplicateGroups:    [ContactGroup] = []
+    @Published var incompleteContacts: [ContactItem]  = []
+    @Published var isLoading           = false
+    @Published var toastMessage:       String?
 
     func load() {
         isLoading = true
@@ -245,18 +247,15 @@ class ContactsViewModel: ObservableObject {
     }
 }
 
-// MARK: - 1. Duplicate Contacts View
+// MARK: - Duplicate Contacts View
 struct DuplicateContactsView: View {
     @ObservedObject var vm: ContactsViewModel
-    @State private var selectedIDs   = Set<String>()
+    @State private var selectedIDs     = Set<String>()
     @State private var showDeleteAlert = false
-
-    var totalSelected: Int { selectedIDs.count }
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Summary + actions bar
                 HStack {
                     Text("\(vm.duplicateGroups.count) groups · \(vm.duplicateGroups.flatMap(\.contacts).count) contacts")
                         .font(.caption).foregroundColor(.secondary)
@@ -286,17 +285,13 @@ struct DuplicateContactsView: View {
                     }
                 }
             }
-
-            // Toast
             if let msg = vm.toastMessage {
                 VStack { Spacer(); ToastView(message: msg).padding(.bottom, 20) }
                     .animation(.spring(), value: vm.toastMessage)
             }
         }
         .alert("Delete \(selectedIDs.count) Contacts?", isPresented: $showDeleteAlert) {
-            Button("Delete", role: .destructive) {
-                vm.delete(selectedIDs) { selectedIDs = [] }
-            }
+            Button("Delete", role: .destructive) { vm.delete(selectedIDs) { selectedIDs = [] } }
             Button("Cancel", role: .cancel) {}
         } message: { Text("This cannot be undone.") }
         .onAppear { autoSelectDuplicates() }
@@ -317,7 +312,6 @@ struct DuplicateContactGroupCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
             HStack {
                 Image(systemName: "person.2.fill").foregroundColor(.red).font(.caption)
                 Text(group.matchReason).font(.caption).bold().foregroundColor(.red)
@@ -333,9 +327,7 @@ struct DuplicateContactGroupCard: View {
                 let isKeep     = idx == 0
 
                 HStack(spacing: 12) {
-                    // Avatar
                     ContactAvatar(contact: contact, size: 42)
-
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
                             Text(contact.displayName).font(.subheadline).bold()
@@ -354,10 +346,7 @@ struct DuplicateContactGroupCard: View {
                                 .font(.caption).foregroundColor(.secondary)
                         }
                     }
-
                     Spacer()
-
-                    // Checkbox
                     ZStack {
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(isSelected ? Color.red : Color.gray.opacity(0.3), lineWidth: 2)
@@ -383,16 +372,15 @@ struct DuplicateContactGroupCard: View {
     }
 }
 
-// MARK: - 2. Incomplete Contacts View
+// MARK: - Incomplete Contacts View
 struct IncompleteContactsView: View {
     @ObservedObject var vm: ContactsViewModel
-    @State private var selectedIDs    = Set<String>()
+    @State private var selectedIDs     = Set<String>()
     @State private var showDeleteAlert = false
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Bar
                 HStack {
                     Text("\(vm.incompleteContacts.count) incomplete contacts")
                         .font(.caption).foregroundColor(.secondary)
@@ -402,7 +390,6 @@ struct IncompleteContactsView: View {
                             if selectedIDs.count == vm.incompleteContacts.count { selectedIDs = [] }
                             else { selectedIDs = Set(vm.incompleteContacts.map(\.id)) }
                         }.font(.caption).foregroundColor(.purple)
-
                         if !selectedIDs.isEmpty {
                             Button("Delete (\(selectedIDs.count))") { showDeleteAlert = true }
                                 .font(.caption).bold().foregroundColor(.white)
@@ -421,32 +408,26 @@ struct IncompleteContactsView: View {
                 } else {
                     List {
                         ForEach(vm.incompleteContacts) { contact in
-                            ContactRow(
-                                contact: contact,
-                                isSelected: selectedIDs.contains(contact.id),
-                                badge: incompleteReason(contact)
-                            ) {
+                            ContactRow(contact: contact,
+                                       isSelected: selectedIDs.contains(contact.id),
+                                       badge: incompleteReason(contact)) {
                                 if selectedIDs.contains(contact.id) { selectedIDs.remove(contact.id) }
                                 else { selectedIDs.insert(contact.id) }
                             }
                             .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden).listRowBackground(Color.clear)
                         }
                     }
                     .listStyle(.plain)
                 }
             }
-
             if let msg = vm.toastMessage {
                 VStack { Spacer(); ToastView(message: msg).padding(.bottom, 20) }
                     .animation(.spring(), value: vm.toastMessage)
             }
         }
         .alert("Delete \(selectedIDs.count) Contacts?", isPresented: $showDeleteAlert) {
-            Button("Delete", role: .destructive) {
-                vm.delete(selectedIDs) { selectedIDs = [] }
-            }
+            Button("Delete", role: .destructive) { vm.delete(selectedIDs) { selectedIDs = [] } }
             Button("Cancel", role: .cancel) {}
         } message: { Text("This cannot be undone.") }
     }
@@ -459,12 +440,12 @@ struct IncompleteContactsView: View {
     }
 }
 
-// MARK: - 3. All Contacts View
+// MARK: - All Contacts View
 struct AllContactsView: View {
     @ObservedObject var vm: ContactsViewModel
-    @State private var selectedIDs    = Set<String>()
+    @State private var selectedIDs     = Set<String>()
     @State private var showDeleteAlert = false
-    @State private var searchText     = ""
+    @State private var searchText      = ""
 
     var filtered: [ContactItem] {
         searchText.isEmpty ? vm.allContacts
@@ -477,7 +458,6 @@ struct AllContactsView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Bar
                 HStack {
                     Text("\(filtered.count) contacts").font(.caption).foregroundColor(.secondary)
                     Spacer()
@@ -486,7 +466,6 @@ struct AllContactsView: View {
                             if selectedIDs.count == filtered.count { selectedIDs = [] }
                             else { selectedIDs = Set(filtered.map(\.id)) }
                         }.font(.caption).foregroundColor(.purple)
-
                         if !selectedIDs.isEmpty {
                             Button("Delete (\(selectedIDs.count))") { showDeleteAlert = true }
                                 .font(.caption).bold().foregroundColor(.white)
@@ -500,32 +479,26 @@ struct AllContactsView: View {
 
                 List {
                     ForEach(filtered) { contact in
-                        ContactRow(
-                            contact: contact,
-                            isSelected: selectedIDs.contains(contact.id),
-                            badge: nil
-                        ) {
+                        ContactRow(contact: contact,
+                                   isSelected: selectedIDs.contains(contact.id),
+                                   badge: nil) {
                             if selectedIDs.contains(contact.id) { selectedIDs.remove(contact.id) }
                             else { selectedIDs.insert(contact.id) }
                         }
                         .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden).listRowBackground(Color.clear)
                     }
                 }
                 .listStyle(.plain)
                 .searchable(text: $searchText, prompt: "Search contacts")
             }
-
             if let msg = vm.toastMessage {
                 VStack { Spacer(); ToastView(message: msg).padding(.bottom, 20) }
                     .animation(.spring(), value: vm.toastMessage)
             }
         }
         .alert("Delete \(selectedIDs.count) Contacts?", isPresented: $showDeleteAlert) {
-            Button("Delete", role: .destructive) {
-                vm.delete(selectedIDs) { selectedIDs = [] }
-            }
+            Button("Delete", role: .destructive) { vm.delete(selectedIDs) { selectedIDs = [] } }
             Button("Cancel", role: .cancel) {}
         } message: { Text("This cannot be undone.") }
     }
@@ -541,7 +514,6 @@ struct ContactRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ContactAvatar(contact: contact, size: 44)
-
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(contact.displayName).font(.subheadline).bold()
@@ -560,9 +532,7 @@ struct ContactRow: View {
                     Text(contact.email).font(.caption).foregroundColor(.secondary)
                 }
             }
-
             Spacer()
-
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(isSelected ? Color.red : Color.gray.opacity(0.3), lineWidth: 2)
@@ -591,7 +561,6 @@ struct ContactAvatar: View {
                 .fill(LinearGradient(colors: [avatarColor, avatarColor.opacity(0.6)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: size, height: size)
-
             if let data = contact.contact.thumbnailImageData, let img = UIImage(data: data) {
                 Image(uiImage: img).resizable().scaledToFill()
                     .frame(width: size, height: size).clipShape(Circle())
@@ -605,7 +574,98 @@ struct ContactAvatar: View {
 
     private var avatarColor: Color {
         let colors: [Color] = [.purple, .blue, .green, .orange, .pink, .teal, .indigo]
-        let idx = abs(contact.displayName.hashValue) % colors.count
-        return colors[idx]
+        return colors[abs(contact.displayName.hashValue) % colors.count]
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

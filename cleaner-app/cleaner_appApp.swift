@@ -3,109 +3,58 @@
 //  Created by Hevin Technoweb on 05/03/26.
 
 import SwiftUI
+import FirebaseCore
+import GoogleMobileAds
 
 @main
 struct cleaner_appApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            SplashView()
         }
     }
 }
 
-struct MainTabView: View {
-    @State private var selectedTab = 0
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        // Step 1: Firebase
+        FirebaseApp.configure()
 
-    var body: some View {
-        TabView(selection: $selectedTab) {
-
-            HomeView(selectedTab: $selectedTab)
-                .tabItem { Label("Home",       systemImage: "house.fill") }
-                .tag(0)
-
-            DuplicatePhotoView()
-                .tabItem { Label("Photos",     systemImage: "photo.on.rectangle.angled") }
-                .tag(1)
-
-            BlurryPhotoView()
-                .tabItem { Label("Blurry",     systemImage: "camera.filters") }
-                .tag(2)
-
-            FaceGroupView()
-                .tabItem { Label("Face Match", systemImage: "person.2.fill") }
-                .tag(3)
-
-            MoreView()
-                .tabItem { Label("More",       systemImage: "ellipsis.circle.fill") }
-                .tag(4)
+        // Step 2: Remote config (async — splash ad is independent of this)
+        Task { @MainActor in
+            RemoteConfigService.shared.fetchConfig()
         }
-        .accentColor(.purple)
-    }
-}
 
-// MARK: - More View  (NavigationLink — no tab switching needed)
-struct MoreView: View {
+        // Step 3: ✅ AdMob SDK — ads SIRF completion ke andar load karo
+        // Pehle initializeSDK() call hoti thi jo internally start() karta tha
+        // lekin ads usse bhi pehle 0.5s delay se load ho jaati thi → SDK ready nahi hoti thi
+        MobileAds.shared.start { status in
+            print("✅ AdMob SDK ready: \(status)")
+            Task { @MainActor in
+                // ✅ Splash sabse pehle — SplashView ka onChange isse pakdega
+                AdManager.shared.loadSplashInter()
+                AdManager.shared.loadFloorInter()
+                AdManager.shared.loadMainInter()
+            }
 
-    var body: some View {
-        NavigationView {
-            List {
-                NavigationLink {
-                    VideoCleanerView()
-                } label: {
-                    MoreRow(icon: "video.fill",              title: "Videos")
-                }
-
-                NavigationLink {
-                    DuplicateVideoView()
-                } label: {
-                    MoreRow(icon: "video.badge.checkmark",   title: "Dup Videos")
-                }
-
-                NavigationLink {
-                    VideoCompressView()
-                } label: {
-                    MoreRow(icon: "arrow.down.circle.fill",  title: "Compress")
-                }
-
-                NavigationLink {
-                    ContactsHubView()
-                } label: {
-                    MoreRow(icon: "person.crop.circle.fill", title: "Contacts")
-                }
-
-                NavigationLink {
-                    FileManagerRootView()
-                } label: {
-                    MoreRow(icon: "folder.fill",             title: "Files")
-                }
-
-                NavigationLink {
-                    AppCacheView()
-                } label: {
-                    MoreRow(icon: "trash.fill",              title: "Cache")
+            // Baaki screen ads 1s baad — network pressure kam karo
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Task { @MainActor in
+                    AdManager.shared.loadInterAd(for: .video)
+                    AdManager.shared.loadInterAd(for: .dupVideo)
+                    AdManager.shared.loadInterAd(for: .compress)
+                    AdManager.shared.loadInterAd(for: .contact)
+                    AdManager.shared.loadInterAd(for: .fileManager)
+                    AdManager.shared.loadInterAd(for: .cache)
                 }
             }
-            .listStyle(.plain)
-            .navigationTitle("More")
-            .navigationBarTitleDisplayMode(.large)   // large = LEFT aligned
         }
-    }
-}
 
-struct MoreRow: View {
-    let icon: String
-    let title: String
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(.purple)
-                .frame(width: 32)
-            Text(title)
-                .font(.body)
-                .foregroundColor(.primary)
-        }
-        .padding(.vertical, 4)
+        return true
     }
 }

@@ -23,16 +23,12 @@ struct PhotoGroup: Identifiable {
 }
 
 // MARK: - Horizontal Scroll Fix
-// Width is calculated deterministically from photoCount — no layout measurement,
-// no Auto Layout ambiguity. contentSize is set once in viewDidLoad and is exact.
-
-private let kThumbW:    CGFloat = 160
-private let kThumbH:    CGFloat = 160
+private let kThumbW:    CGFloat = 110
+private let kThumbH:    CGFloat = 140
 private let kSpacing:   CGFloat = 8
-private let kHPad:      CGFloat = 24   // 12 leading + 12 trailing from .padding(.horizontal, 12)
-private let kVPad:      CGFloat = 20   // 10 top + 10 bottom from .padding(.vertical, 10)
+private let kHPad:      CGFloat = 24
+private let kVPad:      CGFloat = 20
 
-/// Exact row width for N photos — must match HStack layout values above
 func rowWidth(for count: Int) -> CGFloat {
     let n = max(count, 1)
     return CGFloat(n) * kThumbW + CGFloat(n - 1) * kSpacing + kHPad
@@ -55,16 +51,12 @@ class HScrollFixController<Content: View>: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
-
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator   = false
         scrollView.alwaysBounceHorizontal         = true
         scrollView.alwaysBounceVertical           = false
         scrollView.backgroundColor                = .clear
-
-        // ✅ Set contentSize immediately — exact, no measurement pass needed
         scrollView.contentSize = CGSize(width: contentWidth, height: contentHeight)
-
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -73,13 +65,9 @@ class HScrollFixController<Content: View>: UIViewController {
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-
         addChild(hostingController)
         hostingController.view.backgroundColor = .clear
-        // ✅ Frame-based: set exact frame so SwiftUI content has full width to lay out
-        hostingController.view.frame = CGRect(x: 0, y: 0,
-                                              width: contentWidth,
-                                              height: contentHeight)
+        hostingController.view.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
         hostingController.view.autoresizingMask = []
         scrollView.addSubview(hostingController.view)
         hostingController.didMove(toParent: self)
@@ -88,7 +76,7 @@ class HScrollFixController<Content: View>: UIViewController {
 
 struct HScrollFix<Content: View>: UIViewControllerRepresentable {
     let height:     CGFloat
-    let photoCount: Int        // ← number of photos in the row
+    let photoCount: Int
     let content:    Content
 
     init(height: CGFloat, photoCount: Int, @ViewBuilder content: () -> Content) {
@@ -142,8 +130,7 @@ class DuplicatePhotoService {
         opts.version                = .current
 
         PHImageManager.default().requestImageDataAndOrientation(
-            for: asset,
-            options: opts
+            for: asset, options: opts
         ) { data, _, _, _ in
             guard let data else { completion(nil); return }
             let hash = SHA256.hash(data: data)
@@ -388,14 +375,14 @@ struct DuplicatePhotoView: View {
             }
             .navigationTitle(vm.scanMode == .duplicate ? "Duplicate Photos" : "Similar Photos")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .principal) {
                     Picker("", selection: $vm.scanMode) {
                         ForEach(DuplicatePhotoViewModel.ScanMode.allCases, id: \.self) {
                             Text($0.rawValue).tag($0)
                         }
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 160)
+                    .frame(width: 220)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Scan") { vm.startScan() }
@@ -413,216 +400,158 @@ struct DuplicatePhotoView: View {
 
     private var mainBody: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
+            // ── Summary bar ────────────────────────────────────────────────
+            HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(vm.groups.count) groups · \(vm.groups.flatMap(\.photos).count) photos")
-                        .font(.subheadline).bold()
+                    Text("\(vm.groups.count) Groups").font(.subheadline).bold()
                     Text("\(vm.selectedIDs.count) selected · \(formatBytes(vm.totalSelectedSize))")
                         .font(.caption).foregroundColor(.secondary)
                 }
                 Spacer()
-                Button("Select All")    { vm.selectAll() }
-                    .font(.caption).foregroundColor(.purple)
-                Button("Deselect All")  { vm.deselectAll() }
-                    .font(.caption).foregroundColor(.gray)
                 if !vm.selectedIDs.isEmpty {
-                    Button("Delete") { vm.showDeleteAlert = true }
-                        .font(.caption).bold()
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color.red).clipShape(Capsule())
+                    Button { vm.showDeleteAlert = true } label: {
+                        Text("Delete Selected").font(.subheadline).bold()
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14).padding(.vertical, 7)
+                            .background(Color.red).clipShape(Capsule())
+                    }
                 }
             }
-            .padding(.horizontal, 14).padding(.vertical, 10)
+            .padding(.horizontal).padding(.vertical, 10)
             .background(Color(.secondarySystemBackground))
 
             ScrollView {
-                VStack(spacing: 16) {
+                LazyVStack(spacing: 16) {
                     ForEach(vm.groups) { group in
-                        PhotoGroupCard(group: group, selectedIDs: $vm.selectedIDs) {
+                        DuplicateGroupCard(group: group, selectedIDs: $vm.selectedIDs) {
                             vm.toggleSelection($0)
                         }
                     }
                 }
-                .padding(.horizontal, 14).padding(.vertical, 12)
+                .padding()
             }
         }
     }
 }
 
-// MARK: - Photo Group Card
-struct PhotoGroupCard: View {
+// MARK: - Group Card  (FaceGroupCard-style layout)
+struct DuplicateGroupCard: View {
     let group: PhotoGroup
     @Binding var selectedIDs: Set<String>
     let onToggle: (String) -> Void
 
-    var best: PhotoItem    { group.photos[0] }
-    var rest: [PhotoItem]  { Array(group.photos.dropFirst()) }
-    var groupLabel: String { "\(group.photos.count) \(group.type == .duplicate ? "Duplicate" : "Similar")" }
-    var cardWidth: CGFloat { UIScreen.main.bounds.width - 28 }
+    var representative: PhotoItem { group.photos[0] }
 
     var body: some View {
-        VStack(spacing: 0) {
-
+        VStack(alignment: .leading, spacing: 10) {
+            // Header row
             HStack {
-                Text(groupLabel)
-                    .font(.system(size: 13, weight: .bold))
+                Image(systemName: group.type == .duplicate ? "doc.on.doc.fill" : "photo.on.rectangle.angled")
+                    .foregroundColor(.purple)
+                Text("\(group.photos.count) \(group.type == .duplicate ? "duplicate" : "similar") photos")
+                    .font(.subheadline).bold()
                 Spacer()
-                Button("Deselect All") {
-                    group.photos.forEach { selectedIDs.remove($0.id) }
-                }
-                .font(.system(size: 12)).foregroundColor(.secondary)
-            }
-            .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
-
-            ZStack(alignment: .topLeading) {
-                PhotoThumb(asset: best.asset, width: cardWidth, height: 210)
-                    .overlay(selectedIDs.contains(best.id) ? Color.red.opacity(0.18) : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(selectedIDs.contains(best.id) ? Color.red : Color.clear, lineWidth: 3)
-                    )
-
-                Button {
-                    rest.forEach { selectedIDs.insert($0.id) }
-                    selectedIDs.remove(best.id)
-                } label: {
-                    Text("Keep All")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color(hexString: "#4CAF50"))
-                        .clipShape(Capsule())
-                }
-                .padding(10)
-            }
-            .overlay(alignment: .topTrailing) {
-                VStack(spacing: 0) {
-                    Text("Best Result")
-                        .font(.system(size: 10, weight: .bold)).foregroundColor(.white)
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(Color(hexString: "#4CAF50"))
-                    Text(formatBytes(best.fileSize))
-                        .font(.system(size: 9)).foregroundColor(.white)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Color.black.opacity(0.6))
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .padding(8)
-            }
-            .overlay(alignment: .bottomTrailing) {
-                SelectCheckmark(isSelected: selectedIDs.contains(best.id)) { onToggle(best.id) }
-                    .padding(8)
+                Text(formatBytes(group.totalSize))
+                    .font(.caption).foregroundColor(.secondary)
             }
 
-            // ── Horizontal row ─────────────────────────────────────────────
-            if !rest.isEmpty {
-                // ✅ kThumbH + kVPad = row height matches padding(.vertical, 10) on HStack
-                let rowH = kThumbH + kVPad
+            // Horizontal photo strip
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(group.photos, id: \.asset.localIdentifier) { photo in
+                        let isBest     = photo.asset.localIdentifier == representative.asset.localIdentifier
+                        let isSelected = selectedIDs.contains(photo.asset.localIdentifier)
 
-                HScrollFix(height: rowH, photoCount: rest.count) {
-                    HStack(spacing: kSpacing) {          // ← kSpacing = 8
-                        ForEach(rest) { photo in
-                            let isSelected = selectedIDs.contains(photo.id)
-                            ZStack(alignment: .topTrailing) {
-                                PhotoThumb(asset: photo.asset, width: kThumbW, height: kThumbH)
-                                    .overlay(isSelected ? Color(hexString: "#E91E63").opacity(0.15) : Color.clear)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(
-                                                isSelected ? Color(hexString: "#E91E63") : Color.gray.opacity(0.3),
-                                                lineWidth: isSelected ? 3 : 1
-                                            )
-                                    )
-
-                                SelectCheckmark(isSelected: isSelected) { onToggle(photo.id) }
-                                    .padding(6)
-                            }
-                            .overlay(alignment: .bottomLeading) {
-                                Text(formatBytes(photo.fileSize))
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 6).padding(.vertical, 3)
-                                    .background(Color.black.opacity(0.65))
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
-                                    .padding(6)
-                            }
-                            .onTapGesture { onToggle(photo.id) }
-                        }
+                        DuplicatePhotoCell(
+                            asset:      photo.asset,
+                            fileSize:   photo.fileSize,
+                            isSelected: isSelected,
+                            isBest:     isBest
+                        ) { onToggle(photo.asset.localIdentifier) }
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 10)  // ← kHPad/2 each side, kVPad/2 each side
                 }
-                .frame(height: rowH)
-                .background(Color(.tertiarySystemBackground))
             }
         }
+        .padding(14)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.07), radius: 6, x: 0, y: 2)
     }
 }
 
-// MARK: - Select Checkmark
-struct SelectCheckmark: View {
+// MARK: - Photo Cell  (FacePhotoCell-style)
+struct DuplicatePhotoCell: View {
+    let asset:      PHAsset
+    let fileSize:   Int64
     let isSelected: Bool
-    let onTap: () -> Void
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(isSelected ? Color.blue : Color.white.opacity(0.8))
-                .frame(width: 26, height: 26)
-                .shadow(radius: 1)
-            if isSelected {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
-            } else {
-                Circle()
-                    .stroke(Color.gray.opacity(0.5), lineWidth: 1.5)
-                    .frame(width: 22, height: 22)
-            }
-        }
-        .onTapGesture { onTap() }
-    }
-}
-
-// MARK: - Photo Thumbnail
-struct PhotoThumb: View {
-    let asset: PHAsset
-    let width: CGFloat
-    let height: CGFloat
+    let isBest:     Bool
+    let onTap:      () -> Void
     @State private var image: UIImage?
 
     var body: some View {
-        Group {
-            if let img = image {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .overlay(ProgressView().scaleEffect(0.7))
+        ZStack(alignment: .topTrailing) {
+            // Thumbnail
+            Group {
+                if let img = image {
+                    Image(uiImage: img).resizable().scaledToFill()
+                } else {
+                    Color.gray.opacity(0.3)
+                }
             }
+            .frame(width: 110, height: 140)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            // Border: red when selected, green when best, clear otherwise
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        isSelected ? Color.red : isBest ? Color.green : Color.clear,
+                        lineWidth: 3
+                    )
+            )
+            // Tint overlay when selected
+            .overlay(isSelected ? Color.red.opacity(0.15) : Color.clear)
+
+            // Checkmark badge (top-right)
+            ZStack {
+                Circle()
+                    .fill(isSelected ? Color.red : Color.white.opacity(0.8))
+                    .frame(width: 24, height: 24)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.caption).bold().foregroundColor(.white)
+                }
+            }
+            .padding(6)
         }
-        .frame(width: width, height: height)
-        .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        // Bottom overlay: KEEP badge + file size
+        .overlay(alignment: .bottom) {
+            HStack {
+                if isBest {
+                    Text("KEEP")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 4).padding(.vertical, 2)
+                        .background(Color.green)
+                        .clipShape(Capsule())
+                }
+                Spacer()
+                Text(formatBytes(fileSize))
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white)
+                    .shadow(radius: 1)
+            }
+            .padding(.horizontal, 6).padding(.bottom, 6)
+        }
+        .onTapGesture { onTap() }
         .onAppear {
-            guard image == nil else { return }
             let opts = PHImageRequestOptions()
-            opts.deliveryMode = .opportunistic
+            opts.deliveryMode  = .fastFormat
             opts.isSynchronous = false
-            opts.isNetworkAccessAllowed = true
             PHImageManager.default().requestImage(
                 for: asset,
-                targetSize: CGSize(width: width * 2, height: height * 2),
+                targetSize: CGSize(width: 220, height: 280),
                 contentMode: .aspectFill,
                 options: opts
-            ) { img, _ in
-                DispatchQueue.main.async { if let img { self.image = img } }
-            }
+            ) { img, _ in DispatchQueue.main.async { image = img } }
         }
     }
 }
