@@ -1,0 +1,53 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Cleanify.xcodeproj -scheme Cleanify -sdk iphonesimulator build
+
+Build settings from command line:
+    SDKROOT = iphonesimulator26.5
+
+2026-07-15 12:51:06.664 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open log store at /Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Build
+2026-07-15 12:51:06.664 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open Build log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Build/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSLocalizedDescription=Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Build/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it.}. User info: {
+    NSLocalizedDescription = "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Build/LogStoreManifest.plist': (257) The file \U201cLogStoreManifest.plist\U201d couldn\U2019t be opened because you don\U2019t have permission to view it.";
+}.
+2026-07-15 12:51:06.668 xcodebuild[9379:96967]  IDEDownloadableMetalToolchainCoordinator: Failed to remount the Metal Toolchain: No downloaded assets found: The file “MetalToolchain” couldn’t be opened because you don’t have permission to view it.
+2026-07-15 12:51:06.671 xcodebuild[9379:96932] [MT] IDESimulatorRuntimeVersionCoordinator: Error loading SDK-to-sim mappings: Error Domain=NSCocoaErrorDomain Code=257 "The file “SDKToSimulatorIndexMapping.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSFilePath=/Users/aniketdhandhukiya/Library/Developer/Xcode/SDKToSimulatorIndexMapping.plist, NSURL=file:///Users/aniketdhandhukiya/Library/Developer/Xcode/SDKToSimulatorIndexMapping.plist, NSUnderlyingError=0x915621e00 {Error Domain=NSPOSIXErrorDomain Code=1 "Operation not permitted"}}
+2026-07-15 12:51:06.673 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open log store at /Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Localization
+2026-07-15 12:51:06.673 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open Localization log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Localization/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSLocalizedDescription=Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Localization/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it.}. User info: {
+    NSLocalizedDescription = "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Localization/LogStoreManifest.plist': (257) The file \U201cLogStoreManifest.plist\U201d couldn\U2019t be opened because you don\U2019t have permission to view it.";
+}.
+2026-07-15 12:51:06.674 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open log store at /Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Launch
+2026-07-15 12:51:06.674 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open Launch log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Launch/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSLocalizedDescription=Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Launch/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it.}. User info: {
+    NSLocalizedDescription = "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Launch/LogStoreManifest.plist': (257) The file \U201cLogStoreManifest.plist\U201d couldn\U2019t be opened because you don\U2019t have permission to view it.";
+}.
+2026-07-15 12:51:06.687 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open log store at /Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Package
+2026-07-15 12:51:06.687 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open Package log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Package/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSLocalizedDescription=Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Package/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it.}. User info: {
+    NSLocalizedDescription = "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Package/LogStoreManifest.plist': (257) The file \U201cLogStoreManifest.plist\U201d couldn\U2019t be opened because you don\U2019t have permission to view it.";
+}.
+2026-07-15 12:51:06.704 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open log store at /Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Test
+2026-07-15 12:51:06.704 xcodebuild[9379:96932] [MT] IDELogStore: Failed to open Test log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Test/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSLocalizedDescription=Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Test/LogStoreManifest.plist': (257) The file “LogStoreManifest.plist” couldn’t be opened because you don’t have permission to view it.}. User info: {
+    NSLocalizedDescription = "Unable to read log store dictionary file at '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/Logs/Test/LogStoreManifest.plist': (257) The file \U201cLogStoreManifest.plist\U201d couldn\U2019t be opened because you don\U2019t have permission to view it.";
+}.
+2026-07-15 12:51:06.709 xcodebuild[9379:96932] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+{ platform:iOS Simulator, arch:arm64, id:DDB1CFEB-BB11-40E3-99E9-BDB1CB5EF527, OS:26.5, name:iPad (A16) }
+{ platform:iOS Simulator, arch:arm64, id:C2F695B2-5861-4147-A68A-C1E135EC4CD1, OS:26.5, name:iPad Air 11-inch (M4) }
+{ platform:iOS Simulator, arch:arm64, id:977B6605-6E79-473D-B313-1D40B6C9DA29, OS:26.5, name:iPad Air 13-inch (M4) }
+{ platform:iOS Simulator, arch:arm64, id:B59BCDD1-F728-4C5F-9371-970C03200FB4, OS:26.5, name:iPad Pro 11-inch (M5) }
+{ platform:iOS Simulator, arch:arm64, id:C2B381D0-2FF4-4577-BD8A-D26B19AA3C93, OS:26.5, name:iPad Pro 13-inch (M5) }
+{ platform:iOS Simulator, arch:arm64, id:305D6D51-8C08-44D6-9591-F258A86ED482, OS:26.5, name:iPad mini (A17 Pro) }
+{ platform:iOS Simulator, arch:arm64, id:38289EEB-9710-409E-AB5D-14C333921CE3, OS:26.5, name:iPhone 17 }
+{ platform:iOS Simulator, arch:arm64, id:2D06F8F3-1395-4971-B3A9-7B7AA321D8CE, OS:26.5, name:iPhone 17 Pro }
+{ platform:iOS Simulator, arch:arm64, id:BE5CEE81-05FD-4A86-9442-C0AF84BEA3B5, OS:26.5, name:iPhone 17 Pro Max }
+{ platform:iOS Simulator, arch:arm64, id:BE252A19-15BF-4236-B245-6CF168E28943, OS:26.5, name:iPhone 17e }
+{ platform:iOS Simulator, arch:arm64, id:9C0ED62D-67FC-4A73-9A7C-6CC268D57A41, OS:26.5, name:iPhone Air }
+{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+{ platform:iOS, arch:arm64, id:00008110-001E75AA2208401E, name:Aniket testing iphone }
+Build Preparation
+Couldn't create workspace arena folder '/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv': Unable to write to info file '<DVTFilePath:0x91827f420:'/Users/aniketdhandhukiya/Library/Developer/Xcode/DerivedData/Cleanify-fbqisxclxadcqkgrmznmijnoxdfv/info.plist'>'.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	Building project Cleanify with scheme Cleanify
+(1 failure)
