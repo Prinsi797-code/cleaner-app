@@ -1,0 +1,30 @@
+{
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify.build/Debug-iphonesimulator/Cleanify.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/GeneratedAssetSymbols.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/GeneratedAssetSymbols.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/AppDelegate.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/AppDelegate.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/AppDelegate.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/AppDelegate.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/AppDelegate.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/AppDelegate.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/SceneDelegate.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SceneDelegate.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SceneDelegate.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SceneDelegate.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SceneDelegate.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SceneDelegate.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/SplashViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SplashViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SplashViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SplashViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SplashViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SplashViewController.swiftdeps"
+  }
+}

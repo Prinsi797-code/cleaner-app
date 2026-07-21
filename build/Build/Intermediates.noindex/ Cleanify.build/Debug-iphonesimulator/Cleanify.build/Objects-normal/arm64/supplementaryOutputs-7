@@ -1,0 +1,30 @@
+{
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/MainTabBarController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/MainTabBarController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/MainTabBarController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/MainTabBarController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/MainTabBarController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/MainTabBarController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Videos/VideoCleanerViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCleanerViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCleanerViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCleanerViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCleanerViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCleanerViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Videos/VideoCompressorListViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressorListViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressorListViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressorListViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressorListViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressorListViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Videos/VideoGridViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoGridViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoGridViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoGridViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoGridViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoGridViewController.swiftdeps"
+  }
+}

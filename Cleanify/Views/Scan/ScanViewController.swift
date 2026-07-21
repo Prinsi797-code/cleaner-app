@@ -151,7 +151,7 @@ class ScanViewController: UIViewController {
         swipePromoBanner.delegate = self
         contentView.addSubview(swipePromoBanner)
         
-        titleLabel.text = "Scan Cleanify"
+        titleLabel.text = "Scan Your iphone"
         
         titleLabel.font = UIFont.roundedFont(ofSize: 32, weight: .bold)
         titleLabel.textColor = .label
@@ -958,7 +958,7 @@ class SubScoreCard: UIControl {
             detailLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6)
         ])
     }
-    
+        
     func setScore(_ score: String) {
         scoreLabel.text = score
     }

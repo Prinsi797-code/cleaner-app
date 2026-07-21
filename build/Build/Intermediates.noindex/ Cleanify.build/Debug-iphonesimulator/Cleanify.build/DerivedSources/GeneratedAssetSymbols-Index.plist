@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>colors</key>
+	<array/>
+	<key>images</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameOnboardingDuplicate</string>
+			<key>relativePath</key>
+			<string>./OnboardingDuplicate.imageset</string>
+			<key>swiftSymbol</key>
+			<string>onboardingDuplicate</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameOnboardingSafe</string>
+			<key>relativePath</key>
+			<string>./OnboardingSafe.imageset</string>
+			<key>swiftSymbol</key>
+			<string>onboardingSafe</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameOnboardingStorage</string>
+			<key>relativePath</key>
+			<string>./OnboardingStorage.imageset</string>
+			<key>swiftSymbol</key>
+			<string>onboardingStorage</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameSwipePromoImage</string>
+			<key>relativePath</key>
+			<string>./swipe_promo_image.imageset</string>
+			<key>swiftSymbol</key>
+			<string>swipePromo</string>
+		</dict>
+	</array>
+	<key>symbols</key>
+	<array/>
+</dict>
+</plist>

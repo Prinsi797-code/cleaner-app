@@ -8,7 +8,7 @@ class VideoCompressionManager {
     private init() {}
     
     /// Compresses a given PHAsset and returns the new PHAsset, deleting the old one if successful.
-    func compressVideo(asset: PHAsset, progressHandler: @escaping (Float) -> Void, completion: @escaping (Result<PHAsset, Error>) -> Void) {
+    func compressVideo(asset: PHAsset, progressHandler: @escaping (Float) -> Void, completion: @escaping (Result<(PHAsset, Bool), Error>) -> Void) {
         
         let options = PHVideoRequestOptions()
         options.isNetworkAccessAllowed = true
@@ -64,32 +64,38 @@ class VideoCompressionManager {
         }
     }
     
-    private func saveToLibraryAndDeleteOriginal(outputURL: URL, originalAsset: PHAsset, completion: @escaping (Result<PHAsset, Error>) -> Void) {
+    private func saveToLibraryAndDeleteOriginal(outputURL: URL, originalAsset: PHAsset, completion: @escaping (Result<(PHAsset, Bool), Error>) -> Void) {
         var placeholder: PHObjectPlaceholder?
         
+        // Step 1: Save the new compressed video
         PHPhotoLibrary.shared().performChanges({
-            // 1. Save new asset
             let creationRequest = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputURL)
             placeholder = creationRequest?.placeholderForCreatedAsset
+        }) { saveSuccess, saveError in
             
-            // 2. Delete original asset
-            PHAssetChangeRequest.deleteAssets([originalAsset] as NSArray)
-            
-        }) { success, error in
             // Clean up temporary file
             try? FileManager.default.removeItem(at: outputURL)
             
             DispatchQueue.main.async {
-                if success, let placeholder = placeholder, let localId = placeholder.localIdentifier as String? {
+                if saveSuccess, let placeholder = placeholder, let localId = placeholder.localIdentifier as String? {
                     // Fetch the newly created asset
                     let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [localId], options: nil)
-                    if let newAsset = fetchResult.firstObject {
-                        completion(.success(newAsset))
-                    } else {
+                    guard let newAsset = fetchResult.firstObject else {
                         completion(.failure(NSError(domain: "VideoCompression", code: 5, userInfo: [NSLocalizedDescriptionKey: "Saved successfully but could not fetch new asset."])))
+                        return
+                    }
+                    
+                    // Step 2: Ask to delete original asset
+                    PHPhotoLibrary.shared().performChanges({
+                        PHAssetChangeRequest.deleteAssets([originalAsset] as NSArray)
+                    }) { deleteSuccess, _ in
+                        // Whether they allowed deletion or not, the compression was successful and the new video is saved.
+                        DispatchQueue.main.async {
+                            completion(.success((newAsset, deleteSuccess)))
+                        }
                     }
                 } else {
-                    let err = error ?? NSError(domain: "VideoCompression", code: 6, userInfo: [NSLocalizedDescriptionKey: "Failed to save or delete."])
+                    let err = saveError ?? NSError(domain: "VideoCompression", code: 6, userInfo: [NSLocalizedDescriptionKey: "Failed to save compressed video."])
                     completion(.failure(err))
                 }
             }

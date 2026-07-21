@@ -1,0 +1,30 @@
+{
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Managers/ContactScanManager.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactScanManager.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactScanManager.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactScanManager.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactScanManager.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactScanManager.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Managers/PhotoScanManager.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/PhotoScanManager.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/PhotoScanManager.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/PhotoScanManager.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/PhotoScanManager.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/PhotoScanManager.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Managers/StorageManager.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/StorageManager.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/StorageManager.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/StorageManager.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/StorageManager.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/StorageManager.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Managers/VideoCompressionManager.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressionManager.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressionManager.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressionManager.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressionManager.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoCompressionManager.swiftdeps"
+  }
+}

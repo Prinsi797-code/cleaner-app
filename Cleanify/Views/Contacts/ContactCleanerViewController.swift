@@ -333,7 +333,7 @@ class ContactGroupCell: UITableViewCell {
         
         countLabel.textColor = .white
         countLabel.font = .systemFont(ofSize: 12, weight: .bold)
-        countLabel.backgroundColor = UIColor(red: 168/255, green: 85/255, blue: 247/255, alpha: 1.0) // purple
+        countLabel.backgroundColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
         countLabel.layer.cornerRadius = 10
         countLabel.clipsToBounds = true
         countLabel.textAlignment = .center

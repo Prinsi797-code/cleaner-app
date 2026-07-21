@@ -1,0 +1,30 @@
+{
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Managers/VideoScanManager.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoScanManager.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoScanManager.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoScanManager.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoScanManager.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/VideoScanManager.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Common/CircularProgressView.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CircularProgressView.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CircularProgressView.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CircularProgressView.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CircularProgressView.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CircularProgressView.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Contacts/ContactCleanerViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactCleanerViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactCleanerViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactCleanerViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactCleanerViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ContactCleanerViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Onboarding/Onboarding1VC.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/Onboarding1VC.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/Onboarding1VC.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/Onboarding1VC.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/Onboarding1VC.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/Onboarding1VC.swiftdeps"
+  }
+}

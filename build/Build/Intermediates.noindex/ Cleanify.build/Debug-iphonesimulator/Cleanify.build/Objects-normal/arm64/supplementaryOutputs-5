@@ -1,0 +1,30 @@
+{
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Scan/ScanViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ScanViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ScanViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ScanViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ScanViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/ScanViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Settings/CleanUpGuideListViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpGuideListViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpGuideListViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpGuideListViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpGuideListViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpGuideListViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Settings/CleanUpStepsViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpStepsViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpStepsViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpStepsViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpStepsViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/CleanUpStepsViewController.swiftdeps"
+  },
+  "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/Cleanify/Views/Settings/SettingsViewController.swift" : {
+    "const-values" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SettingsViewController.swiftconstvalues",
+    "dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SettingsViewController.d",
+    "diagnostics" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SettingsViewController.dia",
+    "object" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SettingsViewController.o",
+    "swift-dependencies" : "/Users/aniketdhandhukiya/Documents/Aniket Dhandhukiya/Archive/Aniket Dhandhukiya/Cleanify/build/Build/Intermediates.noindex/ Cleanify.build/Debug-iphonesimulator/Cleanify.build/Objects-normal/arm64/SettingsViewController.swiftdeps"
+  }
+}

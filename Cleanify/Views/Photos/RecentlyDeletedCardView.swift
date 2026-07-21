@@ -69,7 +69,6 @@ class RecentlyDeletedCardView: UIView {
         actionButton.addTarget(self, action: #selector(handleOpenPhotos), for: .touchUpInside)
         containerView.addSubview(actionButton)
         
-        // Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: topAnchor),
             containerView.leadingAnchor.constraint(equalTo: leadingAnchor),

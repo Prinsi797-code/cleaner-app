@@ -1,10 +1,3 @@
-//
-//  Onboarding4VC.swift
-//  Cleanify
-//
-//  Created by Hevin on 14/07/26.
-//
-
 import UIKit
 
 class Onboarding4VC: UIViewController {
@@ -27,8 +20,24 @@ class Onboarding4VC: UIViewController {
     
     private var selectedIndex: Int? {
         didSet {
-            continueButton.isEnabled = selectedIndex != nil
-            continueButton.alpha = selectedIndex != nil ? 1.0 : 0.5
+            let isEnabled = selectedIndex != nil
+            continueButton.isEnabled = isEnabled
+            
+            UIView.animate(withDuration: 0.3) {
+                if isEnabled {
+                    self.continueButton.alpha = 1.0
+                    self.continueButton.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
+                } else {
+                    self.continueButton.alpha = 0.5
+                    self.continueButton.transform = .identity
+                }
+            } completion: { _ in
+                if isEnabled {
+                    UIView.animate(withDuration: 0.2) {
+                        self.continueButton.transform = .identity
+                    }
+                }
+            }
         }
     }
     
@@ -37,7 +46,13 @@ class Onboarding4VC: UIViewController {
         setupTheme()
         setupUI()
         setupConstraints()
+        prepareForAnimation()
         selectedIndex = nil
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        animateIn()
     }
     
     private func setupTheme() {
@@ -55,15 +70,18 @@ class Onboarding4VC: UIViewController {
         // Title
         titleLabel.text = "What is your focus?"
         titleLabel.textColor = .label
-        titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
+        titleLabel.font = UIFont.roundedFont(ofSize: 32, weight: .bold)
         titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 2
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.5
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
         
         // Subtitle
-        subtitleLabel.text = "Select the main problem you'd like to resolve."
+        subtitleLabel.text = "Select the main problem you'd like to resolve so we can personalize your experience."
         subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        subtitleLabel.font = UIFont.roundedFont(ofSize: 16, weight: .medium)
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -71,7 +89,7 @@ class Onboarding4VC: UIViewController {
         
         // Options Stack setup
         optionsStack.axis = .vertical
-        optionsStack.spacing = 16
+        optionsStack.spacing = 20
         optionsStack.alignment = .fill
         optionsStack.distribution = .fillEqually
         optionsStack.translatesAutoresizingMaskIntoConstraints = false
@@ -85,12 +103,22 @@ class Onboarding4VC: UIViewController {
         option2Card.addTarget(self, action: #selector(didSelectOption2), for: .touchUpInside)
         option3Card.addTarget(self, action: #selector(didSelectOption3), for: .touchUpInside)
         
-        // Blue Continue Button
-        continueButton.backgroundColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
-        continueButton.setTitle("Continue", for: .normal)
-        continueButton.setTitleColor(.white, for: .normal)
-        continueButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        continueButton.layer.cornerRadius = 24
+        // Action Button
+        continueButton.backgroundColor = .label
+        continueButton.setTitle("Get Started ", for: .normal)
+        continueButton.setImage(UIImage(systemName: "sparkles"), for: .normal)
+        continueButton.semanticContentAttribute = .forceRightToLeft
+        continueButton.setTitleColor(.systemBackground, for: .normal)
+        continueButton.tintColor = .systemBackground
+        continueButton.titleLabel?.font = UIFont.roundedFont(ofSize: 18, weight: .bold)
+        continueButton.layer.cornerRadius = 28
+        
+        // Add subtle shadow to button
+        continueButton.layer.shadowColor = UIColor.black.cgColor
+        continueButton.layer.shadowOpacity = 0.15
+        continueButton.layer.shadowOffset = CGSize(width: 0, height: 8)
+        continueButton.layer.shadowRadius = 16
+        
         continueButton.translatesAutoresizingMaskIntoConstraints = false
         continueButton.addTarget(self, action: #selector(didTapContinue), for: .touchUpInside)
         contentView.addSubview(continueButton)
@@ -109,7 +137,7 @@ class Onboarding4VC: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 48),
+            titleLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             
@@ -117,32 +145,60 @@ class Onboarding4VC: UIViewController {
             subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 32),
             subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -32),
             
-            optionsStack.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 36),
+            optionsStack.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 48),
             optionsStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             optionsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             
-            option1Card.heightAnchor.constraint(equalToConstant: 72),
-            option2Card.heightAnchor.constraint(equalToConstant: 72),
-            option3Card.heightAnchor.constraint(equalToConstant: 72),
+            option1Card.heightAnchor.constraint(equalToConstant: 80),
+            option2Card.heightAnchor.constraint(equalToConstant: 80),
+            option3Card.heightAnchor.constraint(equalToConstant: 80),
             
-            continueButton.topAnchor.constraint(equalTo: optionsStack.bottomAnchor, constant: 48),
+            continueButton.topAnchor.constraint(equalTo: optionsStack.bottomAnchor, constant: 56),
             continueButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             continueButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            continueButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40),
-            continueButton.heightAnchor.constraint(equalToConstant: 48)
+            continueButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -48),
+            continueButton.heightAnchor.constraint(equalToConstant: 56)
         ])
+    }
+    
+    // MARK: - Animations
+    private func prepareForAnimation() {
+        let elements = [titleLabel, subtitleLabel, option1Card, option2Card, option3Card, continueButton]
+        for (index, element) in elements.enumerated() {
+            element.alpha = 0
+            element.transform = CGAffineTransform(translationX: 0, y: 30 + CGFloat(index * 10))
+        }
+    }
+    
+    private func animateIn() {
+        let elements = [titleLabel, subtitleLabel, option1Card, option2Card, option3Card, continueButton]
+        
+        for (index, element) in elements.enumerated() {
+            UIView.animate(withDuration: 0.8,
+                           delay: 0.1 + Double(index) * 0.1,
+                           usingSpringWithDamping: 0.8,
+                           initialSpringVelocity: 0.5,
+                           options: .curveEaseOut,
+                           animations: {
+                element.alpha = index == 5 && self.selectedIndex == nil ? 0.5 : 1 // Adjust button alpha
+                element.transform = .identity
+            }, completion: nil)
+        }
     }
     
     // MARK: - Handlers
     @objc private func didSelectOption1() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 1)
     }
     
     @objc private func didSelectOption2() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 2)
     }
     
     @objc private func didSelectOption3() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 3)
     }
     
@@ -155,7 +211,16 @@ class Onboarding4VC: UIViewController {
     
     @objc private func didTapContinue() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        completeOnboarding()
+        
+        UIView.animate(withDuration: 0.1, animations: {
+            self.continueButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1, animations: {
+                self.continueButton.transform = .identity
+            }) { _ in
+                self.completeOnboarding()
+            }
+        }
     }
     
     private func completeOnboarding() {

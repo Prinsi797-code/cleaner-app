@@ -90,8 +90,10 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         } completion: { [weak self] result in
             progressVC.dismiss(animated: true) {
                 switch result {
-                case .success(let newAsset):
-                    self?.showSuccess(for: newAsset, oldAsset: asset, at: indexPath)
+                case .success(let resultTuple):
+                    let newAsset = resultTuple.0
+                    let didDelete = resultTuple.1
+                    self?.showSuccess(for: newAsset, oldAsset: asset, at: indexPath, didDelete: didDelete)
                 case .failure(let error):
                     self?.showError(error)
                 }
@@ -99,19 +101,25 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         }
     }
     
-    private func showSuccess(for newAsset: PHAsset, oldAsset: PHAsset, at indexPath: IndexPath) {
-        // Update local arrays
-        videos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
-        
-        // We might need to refresh VideoScanManager here in a real scenario, but for now we just remove it from the list
-        VideoScanManager.shared.allVideos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
-        VideoScanManager.shared.largeVideos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
-        
-        tableView.deleteRows(at: [indexPath], with: .automatic)
-        
-        let alert = UIAlertController(title: "Success", message: "Video compressed and original deleted!", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    private func showSuccess(for newAsset: PHAsset, oldAsset: PHAsset, at indexPath: IndexPath, didDelete: Bool) {
+        if didDelete {
+            // Update local arrays
+            videos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
+            
+            // Remove it from global lists
+            VideoScanManager.shared.allVideos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
+            VideoScanManager.shared.largeVideos.removeAll { $0.localIdentifier == oldAsset.localIdentifier }
+            
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            let alert = UIAlertController(title: "Success", message: "Video compressed and original deleted!", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        } else {
+            let alert = UIAlertController(title: "Success", message: "Video compressed successfully, but original was kept since you didn't allow deletion.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
     }
     
     private func showError(_ error: Error) {

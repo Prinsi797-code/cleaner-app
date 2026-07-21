@@ -180,6 +180,8 @@
 				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cleanify/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Phone Cleaner";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSContactsUsageDescription = "Cleanify needs access to your contacts to find duplicate names, numbers, or emails.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Cleanify needs permission to manage and delete unwanted photos.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Cleanify needs access to your photos to identify duplicates, screenshots, and large media files.";
@@ -219,6 +221,8 @@
 				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cleanify/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Phone Cleaner";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSContactsUsageDescription = "Cleanify needs access to your contacts to find duplicate names, numbers, or emails.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Cleanify needs permission to manage and delete unwanted photos.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Cleanify needs access to your photos to identify duplicates, screenshots, and large media files.";

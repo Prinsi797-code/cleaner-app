@@ -1,10 +1,3 @@
-//
-//  Onboarding1VC.swift
-//  Cleanify
-//
-//  Created by Hevin on 14/07/26.
-//
-
 import UIKit
 
 class Onboarding1VC: UIViewController {
@@ -16,70 +9,64 @@ class Onboarding1VC: UIViewController {
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     
-    // Center Illustration with Shadow wrapper
+    // Illustration
     private let illustrationShadowContainer = UIView()
     private let illustrationView = UIImageView()
     
-    // Bottom Highlight Card
+    // Highlight Section
     private let highlightContainer = UIView()
-    private let highlightIconCircle = UIView()
-    private let highlightIcon = UIImageView()
     private let highlightTitleLabel = UILabel()
     private let highlightDescLabel = UILabel()
     
-    // Main Next Button
+    // Continue Button
     private let nextButton = UIButton(type: .system)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupTheme()
+        view.backgroundColor = .systemBackground
         setupUI()
         setupConstraints()
     }
     
-    private func setupTheme() {
-        view.backgroundColor = .systemBackground
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        animateIn()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        prepareForAnimation()
     }
     
     private func setupUI() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
         
-        // Split Title
-        let text = "Clean Up\nYour iPhone"
-        let attributed = NSMutableAttributedString(string: text)
-        let rangeAll = NSRange(location: 0, length: attributed.length)
-        let rangeColored = (text as NSString).range(of: "Your iPhone")
-        
-        attributed.addAttribute(.font, value: UIFont.systemFont(ofSize: 28, weight: .black), range: rangeAll)
-        attributed.addAttribute(.foregroundColor, value: UIColor.label, range: rangeAll)
-        attributed.addAttribute(.foregroundColor, value: UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0), range: rangeColored)
-        
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = 4
-        paragraphStyle.alignment = .center
-        attributed.addAttribute(.paragraphStyle, value: paragraphStyle, range: rangeAll)
-        
-        titleLabel.attributedText = attributed
-        titleLabel.numberOfLines = 0
+        // Title
+        titleLabel.text = "Welcome to iphone cleaner"
+        titleLabel.textColor = .label
+        titleLabel.font = UIFont.roundedFont(ofSize: 34, weight: .bold)
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 2
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.7
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
         
         // Subtitle
-        subtitleLabel.text = "Remove junk files, duplicate photos, large videos and free up storage."
+        subtitleLabel.text = "The smartest way to clean up your iPhone storage."
         subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        subtitleLabel.font = UIFont.roundedFont(ofSize: 16, weight: .medium)
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(subtitleLabel)
         
-        // Outer Shadow wrapper
-        illustrationShadowContainer.backgroundColor = .clear
+        // Illustration Container with Shadow
         illustrationShadowContainer.layer.shadowColor = UIColor.black.cgColor
         illustrationShadowContainer.layer.shadowOpacity = 0.16
         illustrationShadowContainer.layer.shadowOffset = CGSize(width: 0, height: 12)
@@ -96,42 +83,41 @@ class Onboarding1VC: UIViewController {
         illustrationView.translatesAutoresizingMaskIntoConstraints = false
         illustrationShadowContainer.addSubview(illustrationView)
         
-        // Highlight Card
+        // Highlight Card (No icon, just text)
         highlightContainer.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(highlightContainer)
         
-        highlightIconCircle.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.12)
-        highlightIconCircle.layer.cornerRadius = 24
-        highlightIconCircle.translatesAutoresizingMaskIntoConstraints = false
-        highlightContainer.addSubview(highlightIconCircle)
-        
-        highlightIcon.image = UIImage(systemName: "chart.pie.fill")
-        highlightIcon.tintColor = .systemBlue
-        highlightIcon.contentMode = .scaleAspectFit
-        highlightIcon.translatesAutoresizingMaskIntoConstraints = false
-        highlightIconCircle.addSubview(highlightIcon)
-        
         highlightTitleLabel.text = "Analyze Storage"
         highlightTitleLabel.textColor = .label
-        highlightTitleLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        highlightTitleLabel.font = UIFont.roundedFont(ofSize: 17, weight: .bold)
         highlightTitleLabel.textAlignment = .center
         highlightTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         highlightContainer.addSubview(highlightTitleLabel)
         
         highlightDescLabel.text = "Get a detailed overview of your device storage in a single tap."
         highlightDescLabel.textColor = .secondaryLabel
-        highlightDescLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        highlightDescLabel.font = UIFont.roundedFont(ofSize: 14, weight: .medium)
         highlightDescLabel.textAlignment = .center
         highlightDescLabel.numberOfLines = 0
         highlightDescLabel.translatesAutoresizingMaskIntoConstraints = false
         highlightContainer.addSubview(highlightDescLabel)
         
-        // Blue Action Next Button
-        nextButton.backgroundColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
-        nextButton.setTitle("Next", for: .normal)
-        nextButton.setTitleColor(.white, for: .normal)
-        nextButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        nextButton.layer.cornerRadius = 24
+        // Action Button
+        nextButton.backgroundColor = .label
+        nextButton.setTitle("Continue ", for: .normal)
+        nextButton.setImage(UIImage(systemName: "arrow.right"), for: .normal)
+        nextButton.semanticContentAttribute = .forceRightToLeft
+        nextButton.setTitleColor(.systemBackground, for: .normal)
+        nextButton.tintColor = .systemBackground
+        nextButton.titleLabel?.font = UIFont.roundedFont(ofSize: 18, weight: .bold)
+        nextButton.layer.cornerRadius = 28
+        
+        // Add subtle shadow to button
+        nextButton.layer.shadowColor = UIColor.black.cgColor
+        nextButton.layer.shadowOpacity = 0.15
+        nextButton.layer.shadowOffset = CGSize(width: 0, height: 8)
+        nextButton.layer.shadowRadius = 16
+        
         nextButton.translatesAutoresizingMaskIntoConstraints = false
         nextButton.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
         contentView.addSubview(nextButton)
@@ -150,7 +136,7 @@ class Onboarding1VC: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
-            titleLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             
@@ -158,54 +144,80 @@ class Onboarding1VC: UIViewController {
             subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 32),
             subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -32),
             
-            illustrationShadowContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
+            illustrationShadowContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 40),
             illustrationShadowContainer.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            illustrationShadowContainer.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.82),
-            illustrationShadowContainer.heightAnchor.constraint(equalTo: illustrationShadowContainer.widthAnchor, multiplier: 1.33),
+            illustrationShadowContainer.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8),
+            illustrationShadowContainer.heightAnchor.constraint(equalTo: illustrationShadowContainer.widthAnchor, multiplier: 1.2),
             
             illustrationView.topAnchor.constraint(equalTo: illustrationShadowContainer.topAnchor),
             illustrationView.leadingAnchor.constraint(equalTo: illustrationShadowContainer.leadingAnchor),
             illustrationView.trailingAnchor.constraint(equalTo: illustrationShadowContainer.trailingAnchor),
             illustrationView.bottomAnchor.constraint(equalTo: illustrationShadowContainer.bottomAnchor),
             
-            highlightContainer.topAnchor.constraint(equalTo: illustrationShadowContainer.bottomAnchor, constant: 24),
+            highlightContainer.topAnchor.constraint(equalTo: illustrationShadowContainer.bottomAnchor, constant: 32),
             highlightContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             highlightContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            highlightContainer.heightAnchor.constraint(equalToConstant: 120),
             
-            highlightIconCircle.centerXAnchor.constraint(equalTo: highlightContainer.centerXAnchor),
-            highlightIconCircle.topAnchor.constraint(equalTo: highlightContainer.topAnchor),
-            highlightIconCircle.widthAnchor.constraint(equalToConstant: 48),
-            highlightIconCircle.heightAnchor.constraint(equalToConstant: 48),
-            
-            highlightIcon.centerXAnchor.constraint(equalTo: highlightIconCircle.centerXAnchor),
-            highlightIcon.centerYAnchor.constraint(equalTo: highlightIconCircle.centerYAnchor),
-            highlightIcon.widthAnchor.constraint(equalToConstant: 24),
-            highlightIcon.heightAnchor.constraint(equalToConstant: 24),
-            
-            highlightTitleLabel.topAnchor.constraint(equalTo: highlightIconCircle.bottomAnchor, constant: 12),
+            highlightTitleLabel.topAnchor.constraint(equalTo: highlightContainer.topAnchor, constant: 12),
             highlightTitleLabel.leadingAnchor.constraint(equalTo: highlightContainer.leadingAnchor),
             highlightTitleLabel.trailingAnchor.constraint(equalTo: highlightContainer.trailingAnchor),
             
             highlightDescLabel.topAnchor.constraint(equalTo: highlightTitleLabel.bottomAnchor, constant: 6),
             highlightDescLabel.leadingAnchor.constraint(equalTo: highlightContainer.leadingAnchor, constant: 12),
             highlightDescLabel.trailingAnchor.constraint(equalTo: highlightContainer.trailingAnchor, constant: -12),
+            highlightDescLabel.bottomAnchor.constraint(equalTo: highlightContainer.bottomAnchor),
             
-            nextButton.topAnchor.constraint(equalTo: highlightContainer.bottomAnchor, constant: 36),
+            nextButton.topAnchor.constraint(equalTo: highlightContainer.bottomAnchor, constant: 40),
             nextButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             nextButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            nextButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40),
-            nextButton.heightAnchor.constraint(equalToConstant: 48)
+            nextButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -48),
+            nextButton.heightAnchor.constraint(equalToConstant: 56)
         ])
+    }
+    
+    // MARK: - Animations
+    
+    private func prepareForAnimation() {
+        let elements = [titleLabel, subtitleLabel, illustrationShadowContainer, highlightContainer, nextButton]
+        for (index, element) in elements.enumerated() {
+            element.alpha = 0
+            element.transform = CGAffineTransform(translationX: 0, y: 30 + CGFloat(index * 10))
+        }
+    }
+    
+    private func animateIn() {
+        let elements = [titleLabel, subtitleLabel, illustrationShadowContainer, highlightContainer, nextButton]
+        
+        for (index, element) in elements.enumerated() {
+            UIView.animate(withDuration: 0.8,
+                           delay: 0.1 + Double(index) * 0.1,
+                           usingSpringWithDamping: 0.8,
+                           initialSpringVelocity: 0.5,
+                           options: .curveEaseOut,
+                           animations: {
+                element.alpha = 1
+                element.transform = .identity
+            }, completion: nil)
+        }
     }
     
     @objc private func didTapNext() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        let nextVC = Onboarding2VC()
-        if let window = view.window {
-            UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {
-                window.rootViewController = nextVC
-            }, completion: nil)
+        
+        // Button tap animation
+        UIView.animate(withDuration: 0.1, animations: {
+            self.nextButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1, animations: {
+                self.nextButton.transform = .identity
+            }) { _ in
+                let nextVC = Onboarding2VC()
+                if let window = self.view.window {
+                    UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {
+                        window.rootViewController = nextVC
+                    }, completion: nil)
+                }
+            }
         }
     }
 }
