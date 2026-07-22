@@ -2,7 +2,7 @@
 //  ScanViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -85,6 +85,10 @@ class ScanViewController: UIViewController {
     
     private var ringsTopConstraint: NSLayoutConstraint!
 
+    private var deviceName: String {
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTheme()
@@ -151,7 +155,7 @@ class ScanViewController: UIViewController {
         swipePromoBanner.delegate = self
         contentView.addSubview(swipePromoBanner)
         
-        titleLabel.text = "Scan Your iphone"
+        titleLabel.text = "Scan Your \(deviceName)"
         
         titleLabel.font = UIFont.roundedFont(ofSize: 32, weight: .bold)
         titleLabel.textColor = .label
@@ -247,7 +251,7 @@ class ScanViewController: UIViewController {
         shieldIcon.translatesAutoresizingMaskIntoConstraints = false
         statusStackView.addArrangedSubview(shieldIcon)
         
-        statusLabel.text = "Tap the scan button to start scanning your iPhone"
+        statusLabel.text = "Tap the scan button to start scanning your \(deviceName)"
         statusLabel.textColor = .secondaryLabel
         statusLabel.font = UIFont.roundedFont(ofSize: 13, weight: .medium)
         statusLabel.textAlignment = .left
@@ -393,13 +397,13 @@ class ScanViewController: UIViewController {
             metricsStackView.topAnchor.constraint(equalTo: ringsContainerView.bottomAnchor, constant: 24),
             metricsStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 
-            // Status label sits below the metrics/glow
+            
             statusStackView.topAnchor.constraint(equalTo: metricsStackView.bottomAnchor, constant: 24),
             statusStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             statusStackView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 24),
             statusStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -24),
 
-            // Results Section
+            
             resultsContainer.topAnchor.constraint(equalTo: statusStackView.bottomAnchor, constant: 24),
             resultsContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             resultsContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
@@ -424,7 +428,7 @@ class ScanViewController: UIViewController {
         scanIcon.isHidden = false
         
         scanTextLabel.attributedText = nil
-        scanTextLabel.text = "SCAN YOUR iPHONE"
+        scanTextLabel.text = "SCAN YOUR \(deviceName.uppercased())"
         scanTextLabel.textColor = .white
         scanTextLabel.font = UIFont.roundedFont(ofSize: 16, weight: .bold)
         
@@ -433,7 +437,7 @@ class ScanViewController: UIViewController {
         swipePromoBanner.isHidden = true
         swipePromoBanner.alpha = 0
         
-        statusLabel.text = "Tap the scan button to start scanning your iPhone"
+        statusLabel.text = "Tap the scan button to start scanning your \(deviceName)"
         shieldIcon.isHidden = false
         
         scrollView.isScrollEnabled = false
@@ -583,10 +587,12 @@ class ScanViewController: UIViewController {
         scanIcon.isHidden = true // hide the sparkles icon to focus on visual progress
         
         ringsTopConstraint.constant = 100
-        UIView.animate(withDuration: 0.3) {
+        scrollView.setContentOffset(.zero, animated: true)
+        
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
             self.scanButton.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
             self.view.layoutIfNeeded()
-        }
+        })
 
         progressRing.isHidden = false
         progressRing.setProgress(0.0, animated: false)
@@ -629,11 +635,11 @@ class ScanViewController: UIViewController {
                 let combined = NSMutableAttributedString()
                 combined.append(NSAttributedString(string: "\(percentText)\n", attributes: [
                     .font: UIFont.roundedFont(ofSize: 34, weight: .bold),
-                    .foregroundColor: UIColor.label
+                    .foregroundColor: UIColor.white
                 ]))
                 combined.append(NSAttributedString(string: "SCANNING", attributes: [
                     .font: UIFont.roundedFont(ofSize: 11, weight: .bold),
-                    .foregroundColor: UIColor.secondaryLabel
+                    .foregroundColor: UIColor.white.withAlphaComponent(0.7)
                 ]))
                 self.scanTextLabel.attributedText = combined
             }
@@ -678,12 +684,12 @@ class ScanViewController: UIViewController {
         
         // Calculate total items to clean
         let duplicatesPhotosCount = PhotoScanManager.shared.duplicateGroups.flatMap({ $0.assets }).count + PhotoScanManager.shared.similarGroups.flatMap({ $0.assets }).count + PhotoScanManager.shared.screenshots.count + PhotoScanManager.shared.burstPhotos.count + PhotoScanManager.shared.blurryPhotos.count
-        let duplicatesVideosCount = VideoScanManager.shared.largeVideos.count + VideoScanManager.shared.oldVideos.count
+        let totalVideosCount = VideoScanManager.shared.allVideos.count
         let duplicatesContactsCount = ContactScanManager.shared.duplicateNameGroups.flatMap({ $0.contacts }).count + ContactScanManager.shared.duplicatePhoneGroups.flatMap({ $0.contacts }).count + ContactScanManager.shared.incompleteContactsList.count
         
         // Update cards with real data numbers
         photoResultCard.setScore("\(duplicatesPhotosCount)")
-        videoResultCard.setScore("\(duplicatesVideosCount)")
+        videoResultCard.setScore("\(totalVideosCount)")
         contactResultCard.setScore("\(duplicatesContactsCount)")
 
         // Calculate Cleanable Reclaimable sizes in bytes (approximate)
@@ -699,11 +705,11 @@ class ScanViewController: UIViewController {
         let combined = NSMutableAttributedString()
         combined.append(NSAttributedString(string: "\(stats.used)\n", attributes: [
             .font: UIFont.roundedFont(ofSize: 26, weight: .bold),
-            .foregroundColor: UIColor.label
+            .foregroundColor: UIColor.white
         ]))
         combined.append(NSAttributedString(string: "of \(stats.total)\n", attributes: [
             .font: UIFont.roundedFont(ofSize: 13, weight: .medium),
-            .foregroundColor: UIColor.secondaryLabel
+            .foregroundColor: UIColor.white.withAlphaComponent(0.7)
         ]))
         combined.append(NSAttributedString(string: "\(Int(stats.percentUsed * 100))% used", attributes: [
             .font: UIFont.roundedFont(ofSize: 12, weight: .bold),

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A3649F073010DFA000459C51 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = A3649F063010DFA000459C51 /* GoogleMobileAds */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		A362A92A300A353B003B4CB0 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -26,10 +30,10 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		07BAE5043006094C001687EE /* Exceptions for "Cleanify" folder in "Cleanify" target */ = {
+		A3649DEA30109FF300459C51 /* Exceptions for "Cleanify" folder in "Cleanify" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				"App Config/Info.plist",
 			);
 			target = 07BAE4EE30060949001687EE /* Cleanify */;
 		};
@@ -39,14 +43,9 @@
 		07BAE4F130060949001687EE /* Cleanify */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				07BAE5043006094C001687EE /* Exceptions for "Cleanify" folder in "Cleanify" target */,
+				A3649DEA30109FF300459C51 /* Exceptions for "Cleanify" folder in "Cleanify" target */,
 			);
 			path = Cleanify;
-			sourceTree = "<group>";
-		};
-		A362A91B300A353A003B4CB0 /* CleanifyWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanifyWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3649F073010DFA000459C51 /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,7 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				07BAE4F130060949001687EE /* Cleanify */,
-				A362A91B300A353A003B4CB0 /* CleanifyWidget */,
 				A362A916300A353A003B4CB0 /* Frameworks */,
 				07BAE4F030060949001687EE /* Products */,
 			);
@@ -110,6 +109,7 @@
 			);
 			name = Cleanify;
 			packageProductDependencies = (
+				A3649F063010DFA000459C51 /* GoogleMobileAds */,
 			);
 			productName = Cleanify;
 			productReference = 07BAE4EF30060949001687EE /* Cleanify.app */;
@@ -139,6 +139,9 @@
 			);
 			mainGroup = 07BAE4E630060949001687EE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A3649F053010DFA000459C51 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 07BAE4F030060949001687EE /* Products */;
 			projectDirPath = "";
@@ -179,7 +182,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cleanify/Info.plist;
+				INFOPLIST_FILE = "Cleanify/App Config/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Phone Cleaner";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSContactsUsageDescription = "Cleanify needs access to your contacts to find duplicate names, numbers, or emails.";
@@ -188,7 +191,9 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -207,7 +212,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -220,7 +225,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6AHH4WLP4Z;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cleanify/Info.plist;
+				INFOPLIST_FILE = "Cleanify/App Config/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Phone Cleaner";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSContactsUsageDescription = "Cleanify needs access to your contacts to find duplicate names, numbers, or emails.";
@@ -229,7 +234,9 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -248,7 +255,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -395,6 +402,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A3649F053010DFA000459C51 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A3649F063010DFA000459C51 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A3649F053010DFA000459C51 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 07BAE4E730060949001687EE /* Project object */;
 }

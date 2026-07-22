@@ -64,6 +64,27 @@ class VideoCompressionManager {
         }
     }
     
+    // Track compressed video identifiers
+    var compressedAssetIds: Set<String> {
+        get {
+            let array = UserDefaults.standard.stringArray(forKey: "compressed_video_asset_ids") ?? []
+            return Set(array)
+        }
+        set {
+            UserDefaults.standard.set(Array(newValue), forKey: "compressed_video_asset_ids")
+        }
+    }
+    
+    func markCompressed(assetId: String) {
+        var set = compressedAssetIds
+        set.insert(assetId)
+        compressedAssetIds = set
+    }
+    
+    func isCompressed(assetId: String) -> Bool {
+        return compressedAssetIds.contains(assetId)
+    }
+    
     private func saveToLibraryAndDeleteOriginal(outputURL: URL, originalAsset: PHAsset, completion: @escaping (Result<(PHAsset, Bool), Error>) -> Void) {
         var placeholder: PHObjectPlaceholder?
         
@@ -85,11 +106,13 @@ class VideoCompressionManager {
                         return
                     }
                     
-                    // Step 2: Ask to delete original asset
+                    self.markCompressed(assetId: originalAsset.localIdentifier)
+                    self.markCompressed(assetId: newAsset.localIdentifier)
+                    
                     PHPhotoLibrary.shared().performChanges({
                         PHAssetChangeRequest.deleteAssets([originalAsset] as NSArray)
                     }) { deleteSuccess, _ in
-                        // Whether they allowed deletion or not, the compression was successful and the new video is saved.
+                        
                         DispatchQueue.main.async {
                             completion(.success((newAsset, deleteSuccess)))
                         }

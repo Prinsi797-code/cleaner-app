@@ -2,7 +2,7 @@
 //  MainTabBarController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -47,7 +47,7 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     }
     
     private func setupAppearance() {
-        // Set standard background and tint colors supporting dynamic systems
+        
         //tabBar.backgroundColor = .systemBackground
         tabBar.tintColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
         tabBar.unselectedItemTintColor = .secondaryLabel
@@ -67,8 +67,7 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     }
     
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-        let generator = UISelectionFeedbackGenerator()
-        generator.prepare()
-        generator.selectionChanged()
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+
     }
 }

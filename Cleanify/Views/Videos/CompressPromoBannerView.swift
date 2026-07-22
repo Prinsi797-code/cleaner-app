@@ -9,10 +9,10 @@ class CompressPromoBannerView: UIView {
     weak var delegate: CompressPromoBannerDelegate?
     
     private let accentBlue = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
-
     
     private let containerView = UIView()
-    private let iconContainer = UIView()
+    private let imageCardView = UIView()
+    private let heroImageView = UIImageView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let tryNowButton = UIButton(type: .system)
@@ -27,23 +27,26 @@ class CompressPromoBannerView: UIView {
     }
     
     private func setupUI() {
-        // Container
+        // Main Container
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.backgroundColor = .secondarySystemBackground
-        containerView.layer.cornerRadius = 24
+        containerView.layer.cornerRadius = 28
         addSubview(containerView)
         
-        // Icon Container Setup
-        iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.backgroundColor = accentBlue.withAlphaComponent(0.2)
-        iconContainer.layer.cornerRadius = 35
-        containerView.addSubview(iconContainer)
+        // Styled Image Card Container
+        imageCardView.translatesAutoresizingMaskIntoConstraints = false
+        imageCardView.backgroundColor = accentBlue.withAlphaComponent(0)
+        imageCardView.layer.cornerRadius = 20
+        imageCardView.layer.borderWidth = 1
+        imageCardView.layer.borderColor = accentBlue.withAlphaComponent(0).cgColor
+        containerView.addSubview(imageCardView)
         
-        let heroImageView = UIImageView(image: UIImage(systemName: "arrow.down.right.and.arrow.up.left.circle.fill"))
+        // Hero Image (video_compress asset)
+        heroImageView.image = UIImage(named: "video_compress")
         heroImageView.translatesAutoresizingMaskIntoConstraints = false
         heroImageView.contentMode = .scaleAspectFit
-        heroImageView.tintColor = accentBlue
-        iconContainer.addSubview(heroImageView)
+        heroImageView.clipsToBounds = true
+        imageCardView.addSubview(heroImageView)
         
         // Text
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -55,8 +58,7 @@ class CompressPromoBannerView: UIView {
         
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.text = "Shrink large videos up to 80% without losing noticeable quality."
-        
-        subtitleLabel.font = UIFont.roundedFont(ofSize: 15, weight: .medium)
+        subtitleLabel.font = UIFont.roundedFont(ofSize: 14, weight: .medium)
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
@@ -66,10 +68,18 @@ class CompressPromoBannerView: UIView {
         tryNowButton.translatesAutoresizingMaskIntoConstraints = false
         tryNowButton.backgroundColor = accentBlue
         tryNowButton.setTitle(" Compress Now", for: .normal)
-        tryNowButton.setImage(UIImage(systemName: "wand.and.stars"), for: .normal)
+        tryNowButton.setTitleColor(.white, for: .normal)
+        if let wandIcon = UIImage(systemName: "wand.and.stars")?.withRenderingMode(.alwaysTemplate) {
+            tryNowButton.setImage(wandIcon, for: .normal)
+        }
         tryNowButton.tintColor = .white
+        tryNowButton.imageView?.tintColor = .white
         tryNowButton.titleLabel?.font = UIFont.roundedFont(ofSize: 16, weight: .bold)
         tryNowButton.layer.cornerRadius = 24
+        tryNowButton.layer.shadowColor = accentBlue.cgColor
+        tryNowButton.layer.shadowOpacity = 0.3
+        tryNowButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        tryNowButton.layer.shadowRadius = 8
         tryNowButton.addTarget(self, action: #selector(handleTryNow), for: .touchUpInside)
         containerView.addSubview(tryNowButton)
         
@@ -80,29 +90,30 @@ class CompressPromoBannerView: UIView {
             containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
             
-            iconContainer.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 24),
-            iconContainer.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            iconContainer.widthAnchor.constraint(equalToConstant: 70),
-            iconContainer.heightAnchor.constraint(equalToConstant: 70),
+            imageCardView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            imageCardView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            imageCardView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            imageCardView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            imageCardView.heightAnchor.constraint(equalToConstant: 160),
             
-            heroImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
-            heroImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-            heroImageView.widthAnchor.constraint(equalToConstant: 40),
-            heroImageView.heightAnchor.constraint(equalToConstant: 40),
+            heroImageView.centerXAnchor.constraint(equalTo: imageCardView.centerXAnchor),
+            heroImageView.centerYAnchor.constraint(equalTo: imageCardView.centerYAnchor),
+            heroImageView.widthAnchor.constraint(equalTo: imageCardView.widthAnchor, constant: -24),
+            heroImageView.heightAnchor.constraint(equalTo: imageCardView.heightAnchor, constant: -16),
             
-            titleLabel.topAnchor.constraint(equalTo: iconContainer.bottomAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: imageCardView.bottomAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            subtitleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
-            subtitleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
+            subtitleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            subtitleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             
-            tryNowButton.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 16),
+            tryNowButton.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
             tryNowButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             tryNowButton.widthAnchor.constraint(equalToConstant: 180),
-            tryNowButton.heightAnchor.constraint(equalToConstant: 48),
-            tryNowButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -24)
+            tryNowButton.heightAnchor.constraint(equalToConstant: 44),
+            tryNowButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16)
         ])
     }
     

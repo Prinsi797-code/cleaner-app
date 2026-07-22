@@ -2,7 +2,7 @@
 //  CleanUpGuideListViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 15/07/26.
+//  Created by Aniket Dhandhukiya on 15/07/26.
 //
 
 import UIKit
@@ -19,16 +19,19 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    private var deviceName: String {
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+    }
     
-    private let guides: [CleanUpGuide] = [
+    private lazy var guides: [CleanUpGuide] = [
         CleanUpGuide(
             title: "Offload Unused Apps",
             iconName: "gearshape.fill",
             iconBackgroundColor: UIColor(red: 173/255, green: 191/255, blue: 232/255, alpha: 1.0),
             steps: [
-                "Open the 'Settings' app on your iPhone.",
+                "Open the 'Settings' app on your \(deviceName).",
                 "Scroll down and tap on 'General'.",
-                "Tap on 'iPhone Storage'.",
+                "Tap on '\(deviceName) Storage'.",
                 "Review the list of apps. Tap 'Enable' next to 'Offload Unused Apps' to let iOS do it automatically, OR tap on an individual app.",
                 "If you tapped an app, select 'Offload App' to free up storage while keeping its documents and data."
             ]
@@ -38,7 +41,7 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
             iconName: "paperplane.fill",
             iconBackgroundColor: UIColor(red: 122/255, green: 201/255, blue: 245/255, alpha: 1.0),
             steps: [
-                "Open the 'Telegram' app on your iPhone.",
+                "Open the 'Telegram' app on your \(deviceName).",
                 "Tap on 'Settings' in the bottom right corner.",
                 "Select 'Data and Storage'.",
                 "Tap on 'Storage Usage'.",
@@ -50,7 +53,7 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
             iconName: "phone.fill",
             iconBackgroundColor: UIColor(red: 161/255, green: 233/255, blue: 184/255, alpha: 1.0),
             steps: [
-                "Open the 'WhatsApp' app on your iPhone.",
+                "Open the 'WhatsApp' app on your \(deviceName).",
                 "Tap on 'Settings' in the bottom right corner.",
                 "Select 'Storage and Data'.",
                 "Tap on 'Manage Storage'.",
@@ -63,7 +66,7 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
             iconName: "safari.fill",
             iconBackgroundColor: UIColor(red: 173/255, green: 191/255, blue: 232/255, alpha: 1.0),
             steps: [
-                "Open the 'Settings' app on your iPhone.",
+                "Open the 'Settings' app on your \(deviceName).",
                 "Scroll down and tap on 'Safari'.",
                 "Scroll down until you find 'Clear History and Website Data'.",
                 "Tap it, choose the timeframe you want to clear, and confirm.",
@@ -78,8 +81,8 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
                 "Go to your Home Screen and find an app you no longer use.",
                 "Touch and hold the app icon until a menu appears.",
                 "Tap 'Remove App'.",
-                "Tap 'Delete App' to completely remove it and its data from your iPhone.",
-                "Alternatively, you can delete apps from Settings > General > iPhone Storage."
+                "Tap 'Delete App' to completely remove it and its data from your \(deviceName).",
+                "Alternatively, you can delete apps from Settings > General > \(deviceName) Storage."
             ]
         )
     ]
@@ -115,14 +118,14 @@ class CleanUpGuideListViewController: UIViewController, UITableViewDelegate, UIT
         headerIcon.translatesAutoresizingMaskIntoConstraints = false
         headerContainer.addSubview(headerIcon)
         
-        titleLabel.text = "Clean Up Your iPhone"
+        titleLabel.text = "Clean Up Your \(deviceName)"
         titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         headerContainer.addSubview(titleLabel)
         
-        subtitleLabel.text = "Clear cache and unwanted files manually to optimize your iPhone storage"
+        subtitleLabel.text = "Clear cache and unwanted files manually to optimize your \(deviceName) storage"
         subtitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.numberOfLines = 0

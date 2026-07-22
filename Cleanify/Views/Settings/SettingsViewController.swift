@@ -2,7 +2,7 @@
 //  SettingsViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -13,6 +13,10 @@ class SettingsViewController: UIViewController {
     private let subtitleLabel = UILabel()
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private var sections: [SettingsSection] = []
+    
+    private var deviceName: String {
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+    }
     
     struct SettingsSection {
         let title: String
@@ -46,7 +50,7 @@ class SettingsViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Hide navigation bar on root tab screen
+        
         self.navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
@@ -72,6 +76,7 @@ class SettingsViewController: UIViewController {
         tableView.register(SettingsCell.self, forCellReuseIdentifier: "SettingsCell")
         tableView.register(SettingsToggleCell.self, forCellReuseIdentifier: "SettingsToggleCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.showsVerticalScrollIndicator = false
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
@@ -144,7 +149,7 @@ class SettingsViewController: UIViewController {
     }
     
     private func triggerShare() {
-        let text = "Check out Cleanify! The fast and premium way to clean your iPhone storage."
+        let text = "Check out Cleanify! The fast and premium way to clean your \(deviceName) storage."
         let items = [text]
         let ac = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(ac, animated: true)

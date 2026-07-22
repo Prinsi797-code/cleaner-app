@@ -2,7 +2,7 @@
 //  PhotoGridViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -85,6 +85,10 @@ class PhotoGridViewController: UIViewController {
         deleteButton.addTarget(self, action: #selector(didTapDelete), for: .touchUpInside)
         bottomBar.addSubview(deleteButton)
         
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.isHidden = true
+        view.addSubview(emptyStateView)
+        
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -99,9 +103,16 @@ class PhotoGridViewController: UIViewController {
             deleteButton.topAnchor.constraint(equalTo: bottomBar.topAnchor, constant: 12),
             deleteButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 24),
             deleteButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor, constant: -24),
-            deleteButton.heightAnchor.constraint(equalToConstant: 48)
+            deleteButton.heightAnchor.constraint(equalToConstant: 48),
+            
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyStateView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 32),
+            emptyStateView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -32)
         ])
     }
+    
+    private let emptyStateView = EmptyStateView()
     
     private func loadAssets() {
         selectedAssets.removeAll()
@@ -110,27 +121,38 @@ class PhotoGridViewController: UIViewController {
         case .duplicates:
             isGrouped = true
             groupedAssets = PhotoScanManager.shared.duplicateGroups
+            emptyStateView.configure(iconName: "square.fill.on.square.fill", title: "No Duplicate Photos", subtitle: "All your photos are unique and organized.", iconColor: .systemPurple)
             preselectDuplicates()
         case .similar:
             isGrouped = true
             groupedAssets = PhotoScanManager.shared.similarGroups
+            emptyStateView.configure(iconName: "photo.stack.fill", title: "No Similar Photos", subtitle: "No visually similar photo groups detected.", iconColor: .systemBlue)
             preselectDuplicates()
         case .screenshots:
             isGrouped = false
             ungroupedAssets = PhotoScanManager.shared.screenshots
+            emptyStateView.configure(iconName: "iphone.circle.fill", title: "No Screenshots", subtitle: "No screenshots found in your photo library.", iconColor: .systemOrange)
         case .livePhotos:
             isGrouped = false
             ungroupedAssets = PhotoScanManager.shared.livePhotos
+            emptyStateView.configure(iconName: "livephoto", title: "No Live Photos", subtitle: "No Live Photos found in your library.", iconColor: .systemGreen)
         case .bursts:
             isGrouped = false
             ungroupedAssets = PhotoScanManager.shared.burstPhotos
+            emptyStateView.configure(iconName: "burst.fill", title: "No Burst Photos", subtitle: "No burst shot series found in your library.", iconColor: .systemTeal)
         case .blurry:
             isGrouped = false
             ungroupedAssets = PhotoScanManager.shared.blurryPhotos
+            emptyStateView.configure(iconName: "drop.circle.fill", title: "No Blurry Photos", subtitle: "Your photos look sharp! No blurry photos detected.", iconColor: .systemIndigo)
         case .all:
             isGrouped = false
             ungroupedAssets = PhotoScanManager.shared.allPhotos
+            emptyStateView.configure(iconName: "photo.fill.on.rectangle.fill", title: "No Photos Found", subtitle: "Your photo library appears to be empty.", iconColor: .systemGray)
         }
+        
+        let isEmpty = isGrouped ? groupedAssets.isEmpty : ungroupedAssets.isEmpty
+        emptyStateView.isHidden = !isEmpty
+        bottomBar.isHidden = isEmpty
         
         collectionView.reloadData()
         updateDeleteButtonTitle()

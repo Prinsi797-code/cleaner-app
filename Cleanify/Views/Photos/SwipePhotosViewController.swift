@@ -34,7 +34,12 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     
     private let progressLabel = UILabel()
     private let deleteButton = UIButton(type: .system)
-    private let emptyStateLabel = UILabel()
+    private let emptyStateView = EmptyStateView(
+        iconName: "sparkles.rectangle.stack.fill",
+        title: "All Sorted!",
+        subtitle: "You have reviewed all items in this section.",
+        iconColor: .systemGreen
+    )
     
     enum Category: String, CaseIterable {
         case all = "All Photos"
@@ -169,13 +174,9 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
         bottomControlsView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(bottomControlsView)
         
-        emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateLabel.text = "You've sorted all items here!"
-        emptyStateLabel.font = UIFont.roundedFont(ofSize: 20, weight: .bold)
-        emptyStateLabel.textColor = .secondaryLabel
-        emptyStateLabel.textAlignment = .center
-        emptyStateLabel.isHidden = true
-        view.addSubview(emptyStateLabel)
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.isHidden = true
+        view.addSubview(emptyStateView)
         
         deleteButton.translatesAutoresizingMaskIntoConstraints = false
         deleteButton.setTitle("Delete 0 Photos", for: .normal)
@@ -203,8 +204,10 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
             bottomControlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             bottomControlsView.heightAnchor.constraint(equalToConstant: 80),
             
-            emptyStateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyStateLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -30),
+            emptyStateView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 32),
+            emptyStateView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -32),
             
             deleteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             deleteButton.widthAnchor.constraint(equalToConstant: 240),
@@ -317,10 +320,13 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
 
     
     private func setupCardStack() {
-        cardStack.forEach { $0.removeFromSuperview() }
+        cardStack.forEach { 
+            $0.cleanupPlayer()
+            $0.removeFromSuperview() 
+        }
         cardStack.removeAll()
         
-        emptyStateLabel.isHidden = true
+        emptyStateView.isHidden = true
         bottomControlsView.isHidden = false
         deleteButton.isHidden = true
         
@@ -353,7 +359,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
             cardStack.append(card)
         }
         
-        cardStack.reverse()
+        cardStack.last?.playVideo()
     }
     
     private func updateCache() {
@@ -383,7 +389,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     }
     
     private func showEmptyState() {
-        emptyStateLabel.isHidden = false
+        emptyStateView.isHidden = false
         bottomControlsView.isHidden = true
         deleteButton.isHidden = trashedAssets.isEmpty
         
@@ -401,7 +407,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
             confirmDeleteButton.isEnabled = true
         }
         
-        if emptyStateLabel.isHidden == false {
+        if emptyStateView.isHidden == false {
             showEmptyState() // Refresh the big button if empty state is showing
         }
     }

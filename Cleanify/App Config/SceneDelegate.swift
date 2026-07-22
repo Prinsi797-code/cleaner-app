@@ -2,7 +2,7 @@
 //  SceneDelegate.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -17,12 +17,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let window = UIWindow(windowScene: windowScene)
         
-        let onboardingCompleted = UserDefaults.standard.bool(forKey: "onboarding_completed")
-        if onboardingCompleted {
-            window.rootViewController = SplashViewController()
-        } else {
-            window.rootViewController = Onboarding1VC()
-        }
+        window.rootViewController = SplashViewController()
         
         if let isDarkModeForced = UserDefaults.standard.object(forKey: "isDarkModeForced") as? Bool {
             window.overrideUserInterfaceStyle = isDarkModeForced ? .dark : .light

@@ -2,7 +2,7 @@
 //  VideoGridViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -77,6 +77,10 @@ class VideoGridViewController: UIViewController {
         deleteButton.addTarget(self, action: #selector(didTapDelete), for: .touchUpInside)
         bottomBar.addSubview(deleteButton)
         
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.isHidden = true
+        view.addSubview(emptyStateView)
+        
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -91,9 +95,21 @@ class VideoGridViewController: UIViewController {
             deleteButton.topAnchor.constraint(equalTo: bottomBar.topAnchor, constant: 12),
             deleteButton.leadingAnchor.constraint(equalTo: bottomBar.leadingAnchor, constant: 24),
             deleteButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor, constant: -24),
-            deleteButton.heightAnchor.constraint(equalToConstant: 48)
+            deleteButton.heightAnchor.constraint(equalToConstant: 48),
+            
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyStateView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 32),
+            emptyStateView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -32)
         ])
     }
+    
+    private let emptyStateView = EmptyStateView(
+        iconName: "video.circle.fill",
+        title: "No Videos Found",
+        subtitle: "There are no videos in this category.",
+        iconColor: .systemOrange
+    )
     
     private func loadAssets() {
         selectedAssets.removeAll()
@@ -101,11 +117,17 @@ class VideoGridViewController: UIViewController {
         switch categoryType {
         case .large:
             assets = VideoScanManager.shared.largeVideos
+            emptyStateView.configure(iconName: "externaldrive.fill.badge.checkmark", title: "No Large Videos", subtitle: "No videos over 100MB found in your library.", iconColor: .systemOrange)
         case .old:
             assets = VideoScanManager.shared.oldVideos
+            emptyStateView.configure(iconName: "clock.badge.checkmark.fill", title: "No Old Videos", subtitle: "No videos older than 1 year found in your library.", iconColor: .systemBlue)
         case .all:
             assets = VideoScanManager.shared.allVideos
+            emptyStateView.configure(iconName: "video.badge.checkmark", title: "No Videos", subtitle: "No videos found in your photo library.", iconColor: .systemGreen)
         }
+        
+        emptyStateView.isHidden = !assets.isEmpty
+        bottomBar.isHidden = assets.isEmpty
         
         collectionView.reloadData()
         updateDeleteButtonTitle()

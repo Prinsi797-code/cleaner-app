@@ -2,7 +2,7 @@
 //  ContactScanManager.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import Foundation
@@ -159,7 +159,9 @@ class ContactScanManager {
             for phone in contact.phoneNumbers {
                 let digits = cleanPhoneNumber(phone.value.stringValue)
                 if digits.count >= 7 { // Ignore short/invalid number segments
-                    phoneDict[digits, default: []].append(contact)
+                    if !phoneDict[digits, default: []].contains(where: { $0.identifier == contact.identifier }) {
+                        phoneDict[digits, default: []].append(contact)
+                    }
                 }
             }
         }

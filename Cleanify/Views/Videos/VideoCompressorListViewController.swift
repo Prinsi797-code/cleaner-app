@@ -6,14 +6,24 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private var videos: [PHAsset] = []
     
+    private let emptyStateView = EmptyStateView(
+        iconName: "video.badge.checkmark",
+        title: "No Videos to Compress",
+        subtitle: "No videos larger than 50 MB were found in your library.",
+        iconColor: .systemBlue
+    )
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Smart Compress"
         view.backgroundColor = .systemGroupedBackground
         
-        // Use large videos by default, or all videos if no large videos exist
-        let allLarge = VideoScanManager.shared.largeVideos
-        videos = allLarge.isEmpty ? VideoScanManager.shared.allVideos : allLarge
+        // Filter videos over 50 MB
+        let minSizeInBytes: Int64 = 50 * 1024 * 1024 // 50 MB
+        videos = VideoScanManager.shared.allVideos.filter { asset in
+            let size = VideoScanManager.shared.videoSizes[asset.localIdentifier] ?? 0
+            return size >= minSizeInBytes
+        }
         
         // Sort by size descending
         videos.sort { a, b in
@@ -28,11 +38,20 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         tableView.register(VideoCompressorCell.self, forCellReuseIdentifier: "VideoCell")
         view.addSubview(tableView)
         
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.isHidden = !videos.isEmpty
+        view.addSubview(emptyStateView)
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyStateView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 32),
+            emptyStateView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -32)
         ])
     }
     
@@ -62,7 +81,8 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         let sizeStr = formatter.string(fromByteCount: size)
         
         let durationStr = formatDuration(asset.duration)
-        cell.configure(asset: asset, sizeStr: sizeStr, durationStr: durationStr)
+        let isCompressed = VideoCompressionManager.shared.isCompressed(assetId: asset.localIdentifier)
+        cell.configure(asset: asset, sizeStr: sizeStr, durationStr: durationStr, isCompressed: isCompressed)
         
         return cell
     }
@@ -71,12 +91,17 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         tableView.deselectRow(at: indexPath, animated: true)
         let asset = videos[indexPath.row]
         
-        let alert = UIAlertController(title: "Compress Video?", message: "This will compress the video to 720p to save space. The original video will be replaced.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Compress", style: .default, handler: { [weak self] _ in
+        if VideoCompressionManager.shared.isCompressed(assetId: asset.localIdentifier) {
+            let alert = UIAlertController(title: "Already Compressed", message: "This video has already been compressed to optimal 720p HD size.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        let confirmVC = CompressConfirmationViewController(asset: asset) { [weak self] in
             self?.startCompression(for: asset, at: indexPath)
-        }))
-        present(alert, animated: true)
+        }
+        present(confirmVC, animated: true)
     }
     
     private func startCompression(for asset: PHAsset, at indexPath: IndexPath) {
@@ -93,6 +118,8 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
                 case .success(let resultTuple):
                     let newAsset = resultTuple.0
                     let didDelete = resultTuple.1
+                    VideoCompressionManager.shared.markCompressed(assetId: asset.localIdentifier)
+                    VideoCompressionManager.shared.markCompressed(assetId: newAsset.localIdentifier)
                     self?.showSuccess(for: newAsset, oldAsset: asset, at: indexPath, didDelete: didDelete)
                 case .failure(let error):
                     self?.showError(error)
@@ -140,6 +167,7 @@ class VideoCompressorCell: UITableViewCell {
     private let thumbnailImageView = UIImageView()
     private let titleLbl = UILabel()
     private let sizeLbl = UILabel()
+    private let compressedBadge = UILabel()
     private var currentAssetIdentifier: String?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -164,6 +192,16 @@ class VideoCompressorCell: UITableViewCell {
         sizeLbl.textColor = .secondaryLabel
         contentView.addSubview(sizeLbl)
         
+        compressedBadge.translatesAutoresizingMaskIntoConstraints = false
+        compressedBadge.text = " ✓ Compressed "
+        compressedBadge.font = UIFont.roundedFont(ofSize: 11, weight: .bold)
+        compressedBadge.textColor = .systemGreen
+        compressedBadge.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.14)
+        compressedBadge.layer.cornerRadius = 6
+        compressedBadge.clipsToBounds = true
+        compressedBadge.isHidden = true
+        contentView.addSubview(compressedBadge)
+        
         NSLayoutConstraint.activate([
             thumbnailImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             thumbnailImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -171,11 +209,15 @@ class VideoCompressorCell: UITableViewCell {
             thumbnailImageView.heightAnchor.constraint(equalToConstant: 60),
             
             titleLbl.leadingAnchor.constraint(equalTo: thumbnailImageView.trailingAnchor, constant: 12),
-            titleLbl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            titleLbl.trailingAnchor.constraint(lessThanOrEqualTo: compressedBadge.leadingAnchor, constant: -8),
             titleLbl.topAnchor.constraint(equalTo: thumbnailImageView.topAnchor, constant: 6),
             
+            compressedBadge.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            compressedBadge.centerYAnchor.constraint(equalTo: titleLbl.centerYAnchor),
+            compressedBadge.heightAnchor.constraint(equalToConstant: 20),
+            
             sizeLbl.leadingAnchor.constraint(equalTo: titleLbl.leadingAnchor),
-            sizeLbl.trailingAnchor.constraint(equalTo: titleLbl.trailingAnchor),
+            sizeLbl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             sizeLbl.bottomAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: -6)
         ])
     }
@@ -184,9 +226,18 @@ class VideoCompressorCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configure(asset: PHAsset, sizeStr: String, durationStr: String) {
+    func configure(asset: PHAsset, sizeStr: String, durationStr: String, isCompressed: Bool) {
         titleLbl.text = "Video - \(durationStr)"
-        sizeLbl.text = "Size: \(sizeStr) (Tap to Compress)"
+        
+        if isCompressed {
+            sizeLbl.text = "Size: \(sizeStr) • 720p HD"
+            compressedBadge.isHidden = false
+            accessoryType = .none
+        } else {
+            sizeLbl.text = "Size: \(sizeStr) (Tap to Compress)"
+            compressedBadge.isHidden = true
+            accessoryType = .disclosureIndicator
+        }
         
         currentAssetIdentifier = asset.localIdentifier
         thumbnailImageView.image = nil // reset

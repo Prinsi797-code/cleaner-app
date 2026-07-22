@@ -2,7 +2,7 @@
 //  PhotoCleanerViewController.swift
 //  Cleanify
 //
-//  Created by Hevin on 14/07/26.
+//  Created by Aniket Dhandhukiya on 14/07/26.
 //
 
 import UIKit
@@ -13,6 +13,7 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    private let headerWrapper = UIView()
     private let headerCard = UIView()
     private let totalCountLabel = UILabel()
     private let totalSizeLabel = UILabel()
@@ -90,13 +91,18 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(PhotoCategoryCell.self, forCellReuseIdentifier: "CategoryCell")
+        tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
         
         // Dynamic stats card as header
-        headerCard.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 110)
+        headerWrapper.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 130)
+        headerWrapper.backgroundColor = .clear
+        
         headerCard.backgroundColor = .secondarySystemGroupedBackground
         headerCard.layer.cornerRadius = 16
+        headerCard.translatesAutoresizingMaskIntoConstraints = false
+        headerWrapper.addSubview(headerCard)
         
         let container = UIStackView()
         container.axis = .vertical
@@ -120,7 +126,7 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
         totalSizeLabel.textColor = .secondaryLabel
         container.addArrangedSubview(totalSizeLabel)
         
-        tableView.tableHeaderView = headerCard
+        tableView.tableHeaderView = headerWrapper
         
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -134,6 +140,11 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            headerCard.topAnchor.constraint(equalTo: headerWrapper.topAnchor, constant: 0),
+            headerCard.bottomAnchor.constraint(equalTo: headerWrapper.bottomAnchor, constant: -20),
+            headerCard.leadingAnchor.constraint(equalTo: headerWrapper.leadingAnchor, constant: 20),
+            headerCard.trailingAnchor.constraint(equalTo: headerWrapper.trailingAnchor, constant: -20),
             
             container.centerXAnchor.constraint(equalTo: headerCard.centerXAnchor),
             container.centerYAnchor.constraint(equalTo: headerCard.centerYAnchor)

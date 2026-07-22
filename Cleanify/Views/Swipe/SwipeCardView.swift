@@ -5,6 +5,7 @@
 
 import UIKit
 import Photos
+import AVFoundation
 
 protocol SwipeCardDelegate: AnyObject {
     func cardDidSwipeLeft(_ card: SwipeCardView)
@@ -22,6 +23,13 @@ class SwipeCardView: UIView {
     private let keepOverlay = UIView()
     private let trashIcon = UIImageView(image: UIImage(systemName: "trash.fill"))
     private let keepIcon = UIImageView(image: UIImage(systemName: "checkmark.circle.fill"))
+    private let durationLabel = UILabel()
+    
+    private let videoContainerView = UIView()
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var shouldPlay = false
+    private var loopObserver: NSObjectProtocol?
     
     private var panGesture: UIPanGestureRecognizer!
     private var originalPoint: CGPoint = .zero
@@ -46,6 +54,21 @@ class SwipeCardView: UIView {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 24
         addSubview(imageView)
+        
+        videoContainerView.translatesAutoresizingMaskIntoConstraints = false
+        videoContainerView.layer.cornerRadius = 24
+        videoContainerView.clipsToBounds = true
+        addSubview(videoContainerView)
+        
+        durationLabel.translatesAutoresizingMaskIntoConstraints = false
+        durationLabel.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+        durationLabel.textColor = .white
+        durationLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        durationLabel.layer.cornerRadius = 6
+        durationLabel.clipsToBounds = true
+        durationLabel.textAlignment = .center
+        durationLabel.isHidden = true
+        addSubview(durationLabel)
         
         // Trash Overlay (Red)
         trashOverlay.translatesAutoresizingMaskIntoConstraints = false
@@ -74,6 +97,16 @@ class SwipeCardView: UIView {
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            videoContainerView.topAnchor.constraint(equalTo: topAnchor),
+            videoContainerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            videoContainerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            videoContainerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            durationLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            durationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            durationLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 40),
+            durationLabel.heightAnchor.constraint(equalToConstant: 24),
             
             trashOverlay.topAnchor.constraint(equalTo: topAnchor),
             trashOverlay.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -115,6 +148,8 @@ class SwipeCardView: UIView {
     
     func configure(with asset: PHAsset, imageManager: PHCachingImageManager) {
         self.asset = asset
+        cleanupPlayer()
+        
         let options = PHImageRequestOptions()
         options.isNetworkAccessAllowed = true
         options.deliveryMode = .opportunistic
@@ -124,6 +159,81 @@ class SwipeCardView: UIView {
             DispatchQueue.main.async {
                 self?.imageView.image = image
             }
+        }
+        
+        if asset.mediaType == .video {
+            durationLabel.isHidden = false
+            durationLabel.text = formatDuration(asset.duration)
+            
+            let videoOptions = PHVideoRequestOptions()
+            videoOptions.isNetworkAccessAllowed = true
+            videoOptions.deliveryMode = .automatic
+            PHImageManager.default().requestPlayerItem(forVideo: asset, options: videoOptions) { [weak self] playerItem, _ in
+                guard let self = self, let item = playerItem else { return }
+                DispatchQueue.main.async {
+                    self.setupPlayer(with: item)
+                }
+            }
+        }
+    }
+    
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let hours = Int(duration) / 3600
+        let minutes = Int(duration) / 60 % 60
+        let seconds = Int(duration) % 60
+        
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            return String(format: "%d:%02d", minutes, seconds)
+        }
+    }
+    
+    private func setupPlayer(with item: AVPlayerItem) {
+        player = AVPlayer(playerItem: item)
+        player?.isMuted = true // Muted by default to avoid abrupt noise
+        
+        playerLayer = AVPlayerLayer(player: player)
+        playerLayer?.videoGravity = .resizeAspectFill
+        playerLayer?.frame = videoContainerView.bounds
+        if let playerLayer = playerLayer {
+            videoContainerView.layer.addSublayer(playerLayer)
+        }
+        
+        if shouldPlay {
+            player?.play()
+        }
+        
+        loopObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in
+            self?.player?.seek(to: .zero)
+            self?.player?.play()
+        }
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer?.frame = videoContainerView.bounds
+    }
+    
+    func playVideo() {
+        shouldPlay = true
+        player?.play()
+    }
+    
+    func pauseVideo() {
+        shouldPlay = false
+        player?.pause()
+    }
+    
+    func cleanupPlayer() {
+        shouldPlay = false
+        player?.pause()
+        playerLayer?.removeFromSuperlayer()
+        playerLayer = nil
+        player = nil
+        if let loopObserver = loopObserver {
+            NotificationCenter.default.removeObserver(loopObserver)
+            self.loopObserver = nil
         }
     }
     

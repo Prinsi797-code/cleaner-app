@@ -13,6 +13,10 @@ class Onboarding3VC: UIViewController {
     private let illustrationShadowContainer = UIView()
     private let illustrationView = UIImageView()
     
+    private var deviceName: String {
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+    }
+    
     // Highlight Section
     private let highlightContainer = UIView()
     private let highlightTitleLabel = UILabel()
@@ -58,7 +62,7 @@ class Onboarding3VC: UIViewController {
         contentView.addSubview(titleLabel)
         
         // Subtitle
-        subtitleLabel.text = "All cleaning happens directly on your iPhone. We never upload your personal data."
+        subtitleLabel.text = "All cleaning happens directly on your \(deviceName). We never upload your personal data."
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.font = UIFont.roundedFont(ofSize: 16, weight: .medium)
         subtitleLabel.textAlignment = .center

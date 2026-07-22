@@ -21,6 +21,10 @@ class Onboarding1VC: UIViewController {
     // Continue Button
     private let nextButton = UIButton(type: .system)
     
+    private var deviceName: String {
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -47,7 +51,7 @@ class Onboarding1VC: UIViewController {
         scrollView.addSubview(contentView)
         
         // Title
-        titleLabel.text = "Welcome to iphone cleaner"
+        titleLabel.text = "Welcome to \(deviceName) cleaner"
         titleLabel.textColor = .label
         titleLabel.font = UIFont.roundedFont(ofSize: 34, weight: .bold)
         titleLabel.textAlignment = .center
@@ -58,7 +62,7 @@ class Onboarding1VC: UIViewController {
         contentView.addSubview(titleLabel)
         
         // Subtitle
-        subtitleLabel.text = "The smartest way to clean up your iPhone storage."
+        subtitleLabel.text = "The smartest way to clean up your \(deviceName) storage."
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.font = UIFont.roundedFont(ofSize: 16, weight: .medium)
         subtitleLabel.textAlignment = .center
