@@ -4,7 +4,7 @@ import Photos
 class CompressConfirmationViewController: UIViewController {
     
     private let asset: PHAsset
-    private let onConfirm: () -> Void
+    private let onConfirm: (CompressConfirmationViewController) -> Void
     
     private let scrollView = UIScrollView()
     private let contentView = UIView()
@@ -16,7 +16,7 @@ class CompressConfirmationViewController: UIViewController {
     private let compressButton = UIButton(type: .system)
     private let cancelButton = UIButton(type: .system)
     
-    init(asset: PHAsset, onConfirm: @escaping () -> Void) {
+    init(asset: PHAsset, onConfirm: @escaping (CompressConfirmationViewController) -> Void) {
         self.asset = asset
         self.onConfirm = onConfirm
         super.init(nibName: nil, bundle: nil)
@@ -158,9 +158,7 @@ class CompressConfirmationViewController: UIViewController {
     }
     
     @objc private func didTapCompress() {
-        dismiss(animated: true) { [weak self] in
-            self?.onConfirm()
-        }
+        self.onConfirm(self)
     }
     
     @objc private func didTapCancel() {

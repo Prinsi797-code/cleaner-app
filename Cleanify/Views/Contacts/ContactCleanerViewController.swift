@@ -24,10 +24,14 @@ class ContactCleanerViewController: UIViewController {
         case incomplete
     }
     
+    private var bannerAdHelper: BannerAdHelper?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadData()
+        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
+        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -38,6 +42,7 @@ class ContactCleanerViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        tableView.contentInset.bottom = 60
         
         if !AppState.hasShownRescanPopup {
             AppState.hasShownRescanPopup = true
@@ -343,6 +348,24 @@ extension ContactCleanerViewController: UITableViewDelegate, UITableViewDataSour
     }
     
     private func promptMerge(for group: ContactGroup) {
+        if !PremiumManager.shared.isPremium {
+            let alert = UIAlertController(
+                title: "Contact Merge is Premium",
+                message: "Merging duplicate contacts is a Pro feature. Upgrade to Premium to merge duplicate profiles and clean up your contact list!",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
+                if #available(iOS 15.0, *) {
+                    let paywallVC = PaywallViewController()
+                    paywallVC.modalPresentationStyle = .fullScreen
+                    self?.present(paywallVC, animated: true)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
+            return
+        }
+        
         let previewVC = MergePreviewViewController(group: group) { [weak self] in
             self?.mergeGroup(group)
         }

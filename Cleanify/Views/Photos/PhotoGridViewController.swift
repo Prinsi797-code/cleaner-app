@@ -7,6 +7,7 @@
 
 import UIKit
 import Photos
+import FirebaseRemoteConfig
 
 class PhotoGridViewController: UIViewController {
     
@@ -17,12 +18,14 @@ class PhotoGridViewController: UIViewController {
     private let bottomBar = UIView()
     private let deleteButton = UIButton(type: .system)
     
-    // Data structures
     private var isGrouped = false
     private var ungroupedAssets: [PHAsset] = []
     private var groupedAssets: [PhotoGroup] = []
     
     private var selectedAssets = Set<PHAsset>()
+    
+    private var loadedAdSections = Set<Int>()
+    private var loadedAdItems = Set<Int>()
     
     init(categoryType: PhotoCleanerViewController.PhotoCategory.CategoryType, categoryTitle: String) {
         self.categoryType = categoryType
@@ -37,7 +40,32 @@ class PhotoGridViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupBackButton()
         loadAssets()
+        PhotosInterstitialManager.shared.preloadInterstitialAd()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handlePremiumStatusChange), name: .premiumStatusChanged, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handlePremiumStatusChange() {
+        if PremiumManager.shared.isPremium {
+            collectionView.reloadData()
+        }
+    }
+    
+    private func setupBackButton() {
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(didTapBackButton))
+        navigationItem.leftBarButtonItem = backButton
+    }
+    
+    @objc private func didTapBackButton() {
+        PhotosInterstitialManager.shared.showAdOnBack(from: self) { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -63,6 +91,7 @@ class PhotoGridViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.allowsMultipleSelection = true
         collectionView.register(PhotoGridCell.self, forCellWithReuseIdentifier: "PhotoCell")
+        collectionView.register(PhotoNativeAdCollectionViewCell.self, forCellWithReuseIdentifier: "AdCell")
         collectionView.register(PhotoSectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "HeaderView")
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
@@ -90,7 +119,7 @@ class PhotoGridViewController: UIViewController {
         view.addSubview(emptyStateView)
         
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor),
@@ -159,7 +188,6 @@ class PhotoGridViewController: UIViewController {
     }
     
     private func preselectDuplicates() {
-        // Pre-select duplicates and leave the original unchecked
         for group in groupedAssets {
             for asset in group.assets {
                 selectedAssets.insert(asset)
@@ -183,10 +211,8 @@ class PhotoGridViewController: UIViewController {
     @objc private func didTapSelectAll() {
         let total = getTotalAssetCount()
         if selectedAssets.count == total && total > 0 {
-            // Deselect All
             selectedAssets.removeAll()
         } else {
-            // Select All
             selectedAssets.removeAll()
             if isGrouped {
                 for group in groupedAssets {
@@ -217,6 +243,26 @@ class PhotoGridViewController: UIViewController {
         guard !selectedAssets.isEmpty else { return }
         
         let assetsArray = Array(selectedAssets)
+        
+        if !PremiumManager.shared.canDeletePhotos(count: assetsArray.count) {
+            let remaining = PremiumManager.shared.getRemainingFreeDeletes()
+            let message = remaining > 0 
+                ? "Free users can only delete 30 photos per day. You have \(remaining) left today, but you are trying to delete \(assetsArray.count). Upgrade to Premium for unlimited deletions!"
+                : "Daily free deletion limit of 30 photos reached. Upgrade to Premium for unlimited deletions!"
+            
+            let alert = UIAlertController(title: "Daily Limit Reached", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
+                if #available(iOS 15.0, *) {
+                    let paywallVC = PaywallViewController()
+                    paywallVC.modalPresentationStyle = .fullScreen
+                    self?.present(paywallVC, animated: true)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
+            return
+        }
+        
         let containsBurst = assetsArray.contains(where: { $0.representsBurst })
         
         if containsBurst {
@@ -238,7 +284,7 @@ class PhotoGridViewController: UIViewController {
             DispatchQueue.main.async {
                 if success {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    // Update lists on disk
+                    PremiumManager.shared.recordDeletions(count: assetsArray.count)
                     self?.removeDeletedAssets(assetsArray)
                     self?.loadAssets()
                 } else if let error = error {
@@ -252,14 +298,12 @@ class PhotoGridViewController: UIViewController {
         let deletedSet = Set(deleted)
         let deletedBurstIDs = Set(deleted.filter { $0.representsBurst }.compactMap { $0.burstIdentifier })
         
-        // Remove from cached arrays
         PhotoScanManager.shared.screenshots.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
         PhotoScanManager.shared.livePhotos.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
         PhotoScanManager.shared.burstPhotos.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
         PhotoScanManager.shared.blurryPhotos.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
         PhotoScanManager.shared.allPhotos.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
         
-        // Clean grouped arrays
         var cleanDuplicates: [PhotoGroup] = []
         for var group in PhotoScanManager.shared.duplicateGroups {
             group.assets.removeAll(where: { deletedSet.contains($0) || ($0.burstIdentifier != nil && deletedBurstIDs.contains($0.burstIdentifier!)) })
@@ -280,39 +324,118 @@ class PhotoGridViewController: UIViewController {
         }
         PhotoScanManager.shared.similarGroups = cleanSimilars
     }
+    
+    // MARK: - Native Ad Helpers (Show Native Ad after every 4 groups)
+    private var isNativeAdEnabled: Bool {
+        if PremiumManager.shared.isPremium { return false }
+        let remoteConfig = RemoteConfig.remoteConfig()
+        let flagStr = remoteConfig.configValue(forKey: "photos_native_flag").stringValue
+        let flag = Int(flagStr) ?? 3
+        return flag > 0
+    }
+    
+    private func isAdSection(_ section: Int) -> Bool {
+        guard isGrouped && isNativeAdEnabled else { return false }
+        return section % 10 == 0
+    }
+    
+    private func groupIndex(forSection section: Int) -> Int {
+        guard isNativeAdEnabled else { return section }
+        return section - (section / 10) - 1
+    }
+    
+    private func isAdItem(_ item: Int) -> Bool {
+        guard !isGrouped && isNativeAdEnabled else { return false }
+        return item % 13 == 0
+    }
+    
+    private func realItemIndex(forItem item: Int) -> Int {
+        guard isNativeAdEnabled else { return item }
+        return item - (item / 13) - 1
+    }
 }
 
 // MARK: - UICollectionView Delegates
 extension PhotoGridViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return isGrouped ? groupedAssets.count : 1
+        if isGrouped {
+            let count = groupedAssets.count
+            if isNativeAdEnabled && count > 0 {
+                return count + (count / 9) + 1
+            }
+            return count
+        } else {
+            return 1
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if isGrouped {
-            // Group count = leadingAsset + matching assets
-            return groupedAssets[section].assets.count + 1
+            if isAdSection(section) {
+                return 1
+            }
+            let realGroupIdx = groupIndex(forSection: section)
+            guard realGroupIdx >= 0, realGroupIdx < groupedAssets.count else { return 0 }
+            return groupedAssets[realGroupIdx].assets.count + 1
         } else {
-            return ungroupedAssets.count
+            let count = ungroupedAssets.count
+            if isNativeAdEnabled && count > 0 {
+                return count + (count / 12) + 1
+            }
+            return count
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if isGrouped {
+            if isAdSection(indexPath.section) {
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AdCell", for: indexPath) as? PhotoNativeAdCollectionViewCell else {
+                    return UICollectionViewCell()
+                }
+                cell.onAdLoaded = { [weak self] in
+                    guard let self = self else { return }
+                    if !self.loadedAdSections.contains(indexPath.section) {
+                        self.loadedAdSections.insert(indexPath.section)
+                        self.collectionView.performBatchUpdates(nil, completion: nil)
+                    }
+                }
+                cell.configure(viewController: self)
+                return cell
+            }
+        } else {
+            if isAdItem(indexPath.item) {
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AdCell", for: indexPath) as? PhotoNativeAdCollectionViewCell else {
+                    return UICollectionViewCell()
+                }
+                cell.onAdLoaded = { [weak self] in
+                    guard let self = self else { return }
+                    if !self.loadedAdItems.contains(indexPath.item) {
+                        self.loadedAdItems.insert(indexPath.item)
+                        self.collectionView.performBatchUpdates(nil, completion: nil)
+                    }
+                }
+                cell.configure(viewController: self)
+                return cell
+            }
+        }
+        
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as? PhotoGridCell else {
             return UICollectionViewCell()
         }
         
         let asset: PHAsset
         if isGrouped {
-            let group = groupedAssets[indexPath.section]
+            let realGroupIdx = groupIndex(forSection: indexPath.section)
+            let group = groupedAssets[realGroupIdx]
             if indexPath.item == 0 {
                 asset = group.leadingAsset
             } else {
                 asset = group.assets[indexPath.item - 1]
             }
         } else {
-            asset = ungroupedAssets[indexPath.item]
+            let realItemIdx = realItemIndex(forItem: indexPath.item)
+            asset = ungroupedAssets[realItemIdx]
         }
         
         let isSelected = selectedAssets.contains(asset)
@@ -321,16 +444,24 @@ extension PhotoGridViewController: UICollectionViewDelegate, UICollectionViewDat
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if isGrouped {
+            if isAdSection(indexPath.section) { return }
+        } else {
+            if isAdItem(indexPath.item) { return }
+        }
+        
         let asset: PHAsset
         if isGrouped {
-            let group = groupedAssets[indexPath.section]
+            let realGroupIdx = groupIndex(forSection: indexPath.section)
+            let group = groupedAssets[realGroupIdx]
             if indexPath.item == 0 {
                 asset = group.leadingAsset
             } else {
                 asset = group.assets[indexPath.item - 1]
             }
         } else {
-            asset = ungroupedAssets[indexPath.item]
+            let realItemIdx = realItemIndex(forItem: indexPath.item)
+            asset = ungroupedAssets[realItemIdx]
         }
         
         if selectedAssets.contains(asset) {
@@ -343,27 +474,94 @@ extension PhotoGridViewController: UICollectionViewDelegate, UICollectionViewDat
         updateDeleteButtonTitle()
     }
     
-    // Layout formatting
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if isGrouped {
+            if isAdSection(indexPath.section) {
+                return loadedAdSections.contains(indexPath.section) ? CGSize(width: collectionView.bounds.width - 24, height: 138) : CGSize(width: 0.1, height: 0.1)
+            }
+        } else {
+            if isAdItem(indexPath.item) {
+                return loadedAdItems.contains(indexPath.item) ? CGSize(width: collectionView.bounds.width - 24, height: 138) : CGSize(width: 0.1, height: 0.1)
+            }
+        }
         let columns: CGFloat = 3
-        let width = (collectionView.bounds.width - (columns - 1) * 2) / columns
+        let width = floor((collectionView.bounds.width - (columns - 1) * 2) / columns)
         return CGSize(width: width, height: width)
     }
     
-    // Headers setup for grouped segments
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return isGrouped ? CGSize(width: collectionView.bounds.width, height: 40) : .zero
+        if isGrouped {
+            if isAdSection(section) {
+                return .zero
+            }
+            return CGSize(width: collectionView.bounds.width, height: 40)
+        }
+        return .zero
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader && isGrouped {
+        if kind == UICollectionView.elementKindSectionHeader && isGrouped && !isAdSection(indexPath.section) {
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "HeaderView", for: indexPath) as? PhotoSectionHeader else {
                 return UICollectionReusableView()
             }
-            header.configure(title: "Group \(indexPath.section + 1)")
+            let realGroupIdx = groupIndex(forSection: indexPath.section)
+            header.configure(title: "Group \(realGroupIdx + 1)")
             return header
         }
         return UICollectionReusableView()
+    }
+}
+
+// MARK: - PhotoNativeAdCollectionViewCell
+class PhotoNativeAdCollectionViewCell: UICollectionViewCell {
+    let containerView = UIView()
+    private var nativeAdHelper: PhotosNativeAdHelper?
+    
+    var onAdLoaded: (() -> Void)?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        nativeAdHelper = nil
+        onAdLoaded = nil
+        // Do not remove subviews here. Let the new AdHelper overwrite them once the ad loads, 
+        // to prevent the cell from blinking blank while scrolling.
+    }
+    
+    private func setupUI() {
+        contentView.backgroundColor = .clear
+        containerView.backgroundColor = .clear // Transparent while loading
+        containerView.layer.cornerRadius = 12
+        containerView.clipsToBounds = true
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(containerView)
+        
+        NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4)
+        ])
+    }
+    
+    func configure(viewController: UIViewController) {
+        if nativeAdHelper == nil {
+            nativeAdHelper = PhotosNativeAdHelper(containerView: containerView, viewController: viewController)
+            nativeAdHelper?.onAdLoaded = { [weak self] in
+                self?.containerView.backgroundColor = .secondarySystemGroupedBackground
+                self?.onAdLoaded?()
+            }
+            nativeAdHelper?.fetchRemoteConfigAndLoadNativeAd()
+        }
     }
 }
 
@@ -392,7 +590,6 @@ class PhotoGridCell: UICollectionViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
         
-        // Circular checkbox indicator
         checkContainer.layer.cornerRadius = 12
         checkContainer.layer.borderWidth = 2.0
         checkContainer.layer.borderColor = UIColor.white.cgColor
@@ -411,74 +608,49 @@ class PhotoGridCell: UICollectionViewCell {
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
+            checkContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             checkContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            checkContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
             checkContainer.widthAnchor.constraint(equalToConstant: 24),
             checkContainer.heightAnchor.constraint(equalToConstant: 24),
             
-        checkIcon.centerXAnchor.constraint(equalTo: checkContainer.centerXAnchor),
-        checkIcon.centerYAnchor.constraint(equalTo: checkContainer.centerYAnchor),
-        checkIcon.widthAnchor.constraint(equalToConstant: 12),
-        checkIcon.heightAnchor.constraint(equalToConstant: 12)
-    ])
-    
-    // Burst tag on top-left
-    burstLabel.text = " BURST "
-    burstLabel.font = .systemFont(ofSize: 10, weight: .bold)
-    burstLabel.textColor = .white
-    burstLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-    burstLabel.layer.cornerRadius = 4
-    burstLabel.clipsToBounds = true
-    burstLabel.translatesAutoresizingMaskIntoConstraints = false
-    contentView.addSubview(burstLabel)
-    
-    NSLayoutConstraint.activate([
-        burstLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-        burstLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 4)
-    ])
-}
+            checkIcon.centerXAnchor.constraint(equalTo: checkContainer.centerXAnchor),
+            checkIcon.centerYAnchor.constraint(equalTo: checkContainer.centerYAnchor),
+            checkIcon.widthAnchor.constraint(equalToConstant: 12),
+            checkIcon.heightAnchor.constraint(equalToConstant: 12)
+        ])
+    }
     
     func configure(with asset: PHAsset, isChecked: Bool) {
-        // Cancel previous request
+        checkContainer.backgroundColor = isChecked ? .systemBlue : UIColor.black.withAlphaComponent(0.3)
+        checkContainer.layer.borderColor = isChecked ? UIColor.systemBlue.cgColor : UIColor.white.cgColor
+        checkIcon.isHidden = !isChecked
+        
+        let targetSize = CGSize(width: 200, height: 200)
+        let options = PHImageRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .opportunistic
+        
         if let requestID = imageRequestID {
             PHImageManager.default().cancelImageRequest(requestID)
         }
         
-        // Fetch thumbnail image
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .opportunistic
-        options.isNetworkAccessAllowed = true
-        
-        let size = bounds.size
-        imageRequestID = PHImageManager.default().requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: options) { [weak self] image, _ in
+        imageRequestID = PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFill, options: options) { [weak self] image, _ in
             self?.imageView.image = image
         }
-        
-        if isChecked {
-            checkContainer.backgroundColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
-            checkContainer.layer.borderColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0).cgColor
-            checkIcon.isHidden = false
-        } else {
-            checkContainer.backgroundColor = UIColor.black.withAlphaComponent(0.24)
-            checkContainer.layer.borderColor = UIColor.white.cgColor
-            checkIcon.isHidden = true
-        }
-        
-        burstLabel.isHidden = !asset.representsBurst
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        imageView.image = nil
         if let requestID = imageRequestID {
             PHImageManager.default().cancelImageRequest(requestID)
+            imageRequestID = nil
         }
+        imageView.image = nil
     }
 }
 
-// MARK: - Section Header for Grouped Duplicates
+// MARK: - PhotoSectionHeader custom header
 class PhotoSectionHeader: UICollectionReusableView {
-    
     private let titleLabel = UILabel()
     
     override init(frame: CGRect) {
@@ -488,12 +660,11 @@ class PhotoSectionHeader: UICollectionReusableView {
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        setupUI()
     }
     
     private func setupUI() {
-        backgroundColor = .secondarySystemBackground
-        
-        titleLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
         titleLabel.textColor = .secondaryLabel
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(titleLabel)
@@ -505,6 +676,6 @@ class PhotoSectionHeader: UICollectionReusableView {
     }
     
     func configure(title: String) {
-        titleLabel.text = title.uppercased()
+        titleLabel.text = title
     }
 }

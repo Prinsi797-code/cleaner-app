@@ -98,31 +98,108 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
             return
         }
         
-        let confirmVC = CompressConfirmationViewController(asset: asset) { [weak self] in
-            self?.startCompression(for: asset, at: indexPath)
+        if !RewardedAdManager.shared.isAdRequired() {
+            self.startCompression(for: asset, at: indexPath)
+            return
         }
-        present(confirmVC, animated: true)
+        
+        let alert = UIAlertController(title: "Compress Video", message: "Watch a short ad to compress this video, or upgrade to Pro to remove ads forever.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Watch Ad", style: .default, handler: { [weak self] _ in
+            guard let self = self else { return }
+            let presentAd = {
+                RewardedAdManager.shared.showRewardedAd(from: self) { success in
+                    if success {
+                        self.startCompression(for: asset, at: indexPath)
+                    } else {
+                        let failAlert = UIAlertController(title: "Ad Failed", message: "Could not complete the ad. Please try again.", preferredStyle: .alert)
+                        failAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(failAlert, animated: true)
+                    }
+                }
+            }
+            
+            if RewardedAdManager.shared.canShowAd() {
+                presentAd()
+            } else {
+                let loadingAlert = UIAlertController(title: "Loading Ad...", message: nil, preferredStyle: .alert)
+                
+                let vc = UIViewController()
+                vc.preferredContentSize = CGSize(width: 250, height: 80)
+                let loadingIndicator = UIActivityIndicatorView(style: .large)
+                loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+                loadingIndicator.startAnimating()
+                vc.view.addSubview(loadingIndicator)
+                
+                NSLayoutConstraint.activate([
+                    loadingIndicator.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+                    loadingIndicator.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor)
+                ])
+                loadingAlert.setValue(vc, forKey: "contentViewController")
+                
+                self.present(loadingAlert, animated: true) {
+                    RewardedAdManager.shared.loadAdOnDemand { success in
+                        loadingAlert.dismiss(animated: true) {
+                            if success {
+                                presentAd()
+                            } else {
+                                let failAlert = UIAlertController(title: "Ad Not Ready", message: "Rewarded ad is not available right now. Please try again or upgrade to Premium.", preferredStyle: .alert)
+                                failAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                                self.present(failAlert, animated: true)
+                            }
+                        }
+                    }
+                }
+            }
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Get Pro Plan", style: .default, handler: { [weak self] _ in
+            guard let self = self else { return }
+            if #available(iOS 15.0, *) {
+                let paywallVC = PaywallViewController()
+                paywallVC.modalPresentationStyle = .fullScreen
+                self.present(paywallVC, animated: true)
+            }
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        self.present(alert, animated: true)
     }
     
     private func startCompression(for asset: PHAsset, at indexPath: IndexPath) {
         let progressVC = CompressionProgressViewController()
         progressVC.modalPresentationStyle = .pageSheet
         progressVC.isModalInPresentation = true
-        present(progressVC, animated: true)
         
-        VideoCompressionManager.shared.compressVideo(asset: asset) { progress in
-            progressVC.updateProgress(progress)
-        } completion: { [weak self] result in
-            progressVC.dismiss(animated: true) {
-                switch result {
-                case .success(let resultTuple):
-                    let newAsset = resultTuple.0
-                    let didDelete = resultTuple.1
-                    VideoCompressionManager.shared.markCompressed(assetId: asset.localIdentifier)
-                    VideoCompressionManager.shared.markCompressed(assetId: newAsset.localIdentifier)
-                    self?.showSuccess(for: newAsset, oldAsset: asset, at: indexPath, didDelete: didDelete)
-                case .failure(let error):
-                    self?.showError(error)
+        present(progressVC, animated: true) { [weak self] in
+            guard let self = self else { return }
+            
+            VideoCompressionManager.shared.compressVideo(asset: asset) { progress in
+                progressVC.updateProgress(progress)
+            } completion: { [weak self] result in
+                guard let self = self else { return }
+                
+                // Add a small 0.5s delay so the user can see 100% progress clearly
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    progressVC.dismiss(animated: true) {
+                        switch result {
+                        case .success(let resultTuple):
+                            let newAsset = resultTuple.0
+                            
+                            // Now that progressVC is dismissed, ask iOS to delete the original
+                            PHPhotoLibrary.shared().performChanges({
+                                PHAssetChangeRequest.deleteAssets([asset] as NSArray)
+                            }) { deleteSuccess, _ in
+                                DispatchQueue.main.async {
+                                    self.showSuccess(for: newAsset, oldAsset: asset, at: indexPath, didDelete: deleteSuccess)
+                                }
+                            }
+                            
+                        case .failure(let error):
+                            self.showError(error)
+                        }
+                    }
                 }
             }
         }

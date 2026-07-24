@@ -55,6 +55,9 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
         view.backgroundColor = .systemBackground
         title = "Swipe to Sort"
         
+        setupBackButton()
+        PhotosInterstitialManager.shared.preloadInterstitialAd()
+        
         confirmDeleteButton = UIBarButtonItem(title: "Delete (0)", style: .prominent, target: self, action: #selector(handleDeleteSelected))
         confirmDeleteButton.tintColor = .systemRed
         confirmDeleteButton.isEnabled = false
@@ -63,6 +66,17 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
         setupCategoriesUI()
         setupUI()
         loadPhotos(for: .all)
+    }
+    
+    private func setupBackButton() {
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(didTapBackButton))
+        navigationItem.leftBarButtonItem = backButton
+    }
+    
+    @objc private func didTapBackButton() {
+        PhotosInterstitialManager.shared.showAdOnBack(from: self) { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -469,11 +483,32 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     @objc private func handleDeleteSelected() {
         guard !trashedAssets.isEmpty else { return }
         
+        let count = trashedAssets.count
+        if !PremiumManager.shared.canDeletePhotos(count: count) {
+            let remaining = PremiumManager.shared.getRemainingFreeDeletes()
+            let message = remaining > 0 
+                ? "Free users can only delete 30 photos per day. You have \(remaining) left today, but you are trying to delete \(count). Upgrade to Premium for unlimited deletions!"
+                : "Daily free deletion limit of 30 photos reached. Upgrade to Premium for unlimited deletions!"
+            
+            let alert = UIAlertController(title: "Daily Limit Reached", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
+                if #available(iOS 15.0, *) {
+                    let paywallVC = PaywallViewController()
+                    paywallVC.modalPresentationStyle = .fullScreen
+                    self?.present(paywallVC, animated: true)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
+            return
+        }
+        
         PHPhotoLibrary.shared().performChanges({
             PHAssetChangeRequest.deleteAssets(Array(self.trashedAssets.values) as NSFastEnumeration)
         }) { success, error in
             DispatchQueue.main.async {
                 if success {
+                    PremiumManager.shared.recordDeletions(count: count)
                     let deletedIds = Set(self.trashedAssets.keys)
                     PhotoScanManager.shared.removeAssets(withIds: deletedIds)
                     

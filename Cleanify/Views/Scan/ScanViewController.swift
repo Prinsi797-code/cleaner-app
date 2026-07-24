@@ -85,6 +85,10 @@ class ScanViewController: UIViewController {
     
     private var ringsTopConstraint: NSLayoutConstraint!
 
+    private var bannerAdHelper: BannerAdHelper?
+    
+
+
     private var deviceName: String {
         return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
     }
@@ -96,12 +100,20 @@ class ScanViewController: UIViewController {
         setupConstraints()
         resetToIdleState()
         
+        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
+        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
+        
         // Data was loaded by SplashViewController before this screen appears
         let hasData = !PhotoScanManager.shared.allPhotos.isEmpty || !VideoScanManager.shared.allVideos.isEmpty || !ContactScanManager.shared.allContacts.isEmpty
         
         if hasData {
             showCachedResults()
         }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        startAuraRotation()
     }
 
     override func viewDidLayoutSubviews() {
@@ -113,11 +125,6 @@ class ScanViewController: UIViewController {
         buttonGradientLayer.frame = scanButton.bounds
         buttonGradientLayer.cornerRadius = scanButton.bounds.width / 2
         scanButton.layer.shadowPath = UIBezierPath(ovalIn: scanButton.bounds).cgPath
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        startAuraRotation()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -418,7 +425,7 @@ class ScanViewController: UIViewController {
             swipePromoBanner.topAnchor.constraint(equalTo: scanAgainButton.bottomAnchor, constant: 32),
             swipePromoBanner.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             swipePromoBanner.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            swipePromoBanner.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -120)
+            swipePromoBanner.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -200)
         ])
     }
 
@@ -537,6 +544,26 @@ class ScanViewController: UIViewController {
     @objc private func didTapScanButton() {
         guard !isScanning else { return }
         
+        if !PremiumManager.shared.isPremium {
+            if let lastScanDate = UserDefaults.standard.object(forKey: "lastScanDate") as? Date {
+                let calendar = Calendar.current
+                let now = Date()
+                if let nextAllowedDate = calendar.date(byAdding: .day, value: 7, to: lastScanDate), now < nextAllowedDate {
+                    let alert = UIAlertController(
+                        title: "Weekly Scan Limit",
+                        message: "Free users can only scan once a week. Upgrade to Premium for unlimited scans!",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
+                        self?.didTapPremium()
+                    }))
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    present(alert, animated: true)
+                    return
+                }
+            }
+        }
+        
         // Request Photo and Contact Access before scanning real database
         requestPermissionsIfNeeded { [weak self] granted in
             DispatchQueue.main.async {
@@ -575,6 +602,10 @@ class ScanViewController: UIViewController {
         targetProgress = 0.0
         minTimeProgress = 0.0
         visualProgress = 0.0
+        
+        if !PremiumManager.shared.isPremium {
+            UserDefaults.standard.set(Date(), forKey: "lastScanDate")
+        }
         
         stopIdleAnimations()
         setAuraScanning(true)
@@ -801,7 +832,7 @@ class ScanViewController: UIViewController {
     }
 
     @objc private func didTapScanAgain() {
-        startScanningFlow()
+        didTapScanButton()
     }
 
     // MARK: - Sub Score Card Redirections
@@ -989,6 +1020,14 @@ class SubScoreCard: UIControl {
 
 extension ScanViewController: SwipePromoBannerDelegate {
     func didTapTryNow() {
+        if !PremiumManager.shared.isPremium {
+            if #available(iOS 15.0, *) {
+                let paywallVC = PaywallViewController()
+                paywallVC.modalPresentationStyle = .fullScreen
+                present(paywallVC, animated: true)
+            }
+            return
+        }
         let swipeVC = SwipePhotosViewController()
         swipeVC.hidesBottomBarWhenPushed = true
         // The current file doesn't have a navigation controller pushed onto it directly, we might need to present it or push if in nav controller
@@ -997,6 +1036,14 @@ extension ScanViewController: SwipePromoBannerDelegate {
         } else {
             swipeVC.modalPresentationStyle = .fullScreen
             present(swipeVC, animated: true, completion: nil)
+        }
+    }
+    
+    @objc private func didTapPremium() {
+        if #available(iOS 15.0, *) {
+            let paywallVC = PaywallViewController()
+            paywallVC.modalPresentationStyle = .fullScreen
+            present(paywallVC, animated: true)
         }
     }
 }

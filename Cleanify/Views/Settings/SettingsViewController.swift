@@ -34,24 +34,40 @@ class SettingsViewController: UIViewController {
             case darkMode
             case language
             case privacyPolicy
-            case termsOfService
             case rateApp
             case shareApp
             case resetOnboarding
             case cleanupGuide
+            case upgradePremium
+            case currentPlan
+            case restorePurchases
         }
     }
     
+    private var bannerAdHelper: BannerAdHelper?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadSettings()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(premiumStatusChanged), name: .premiumStatusChanged, object: nil)
+        
+        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
+        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
+        
+        SettingsInterstitialManager.shared.preloadInterstitialAd()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        tableView.contentInset.bottom = 60
     }
     
     private func setupUI() {
@@ -95,7 +111,18 @@ class SettingsViewController: UIViewController {
     }
     
     private func loadSettings() {
+        var premiumItems: [SettingsItem] = []
+        
+        premiumItems.append(SettingsItem(title: "Current Plan", icon: "crown.fill", iconColor: .systemYellow, type: .currentPlan))
+        
+        if !PremiumManager.shared.isPremium {
+            premiumItems.append(SettingsItem(title: "Upgrade to Premium", icon: "sparkles", iconColor: .systemYellow, type: .upgradePremium))
+        }
+        
+        premiumItems.append(SettingsItem(title: "Restore Purchases", icon: "arrow.clockwise.circle.fill", iconColor: .systemBlue, type: .restorePurchases))
+        
         sections = [
+            SettingsSection(title: "Your Plan", items: premiumItems),
             SettingsSection(title: "How to Clean Up", items: [
                 SettingsItem(title: "View Stories", icon: "graduationcap.fill", iconColor: .systemTeal, type: .cleanupGuide)
             ]),
@@ -108,7 +135,6 @@ class SettingsViewController: UIViewController {
             ]),
             SettingsSection(title: "About & Legal", items: [
                 SettingsItem(title: "Privacy Policy", icon: "hand.raised.fill", iconColor: .systemOrange, type: .privacyPolicy),
-                SettingsItem(title: "Terms of Service", icon: "doc.text.fill", iconColor: .systemGray, type: .termsOfService),
                 SettingsItem(title: "Rate Cleanify", icon: "star.fill", iconColor: .systemYellow, type: .rateApp),
                 SettingsItem(title: "Share Cleanify", icon: "square.and.arrow.up.fill", iconColor: .systemPink, type: .shareApp)
             ])
@@ -150,19 +176,22 @@ class SettingsViewController: UIViewController {
     
     private func triggerShare() {
         let text = "Check out Cleanify! The fast and premium way to clean your \(deviceName) storage."
-        let items = [text]
+        let url = URL(string: "https://apps.apple.com/app/id6760296662")!
+        let items: [Any] = [text, url]
         let ac = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(ac, animated: true)
     }
     
     private func triggerRate() {
-        showToast(message: "Thank you for rating Cleanify!")
+        if let url = URL(string: "itms-apps://itunes.apple.com/app/id6760296662?action=write-review") {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
     
     private func showWebLink(title: String, urlString: String) {
-        let alert = UIAlertController(title: title, message: "This would normally open: \(urlString)", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
     
     private func performResetOnboarding() {
@@ -213,6 +242,21 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
                 return UITableViewCell()
             }
             cell.configure(with: item)
+            cell.onToggle = { [weak self] isDark in
+                guard let self = self else { return }
+                SettingsInterstitialManager.shared.showAdOnBack(from: self) {
+                    UserDefaults.standard.set(isDark, forKey: "isDarkModeForced")
+                    let style: UIUserInterfaceStyle = isDark ? .dark : .light
+                    
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                        windowScene.windows.forEach { window in
+                            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                                window.overrideUserInterfaceStyle = style
+                            }, completion: nil)
+                        }
+                    }
+                }
+            }
             return cell
         } else {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath) as? SettingsCell else {
@@ -228,6 +272,8 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
         let item = sections[indexPath.section].items[indexPath.row]
         
         switch item.type {
+        case .currentPlan:
+            break
         case .recentlyDeleted:
             showRecentlyDeletedGuide()
         case .darkMode:
@@ -235,9 +281,7 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
         case .language:
             showLanguageSelector()
         case .privacyPolicy:
-            showWebLink(title: "Privacy Policy", urlString: "https://cleanify.app/privacy")
-        case .termsOfService:
-            showWebLink(title: "Terms of Service", urlString: "https://cleanify.app/terms")
+            showWebLink(title: "Privacy Policy", urlString: "https://cleanifyai.blogspot.com/")
         case .rateApp:
             triggerRate()
         case .shareApp:
@@ -246,8 +290,42 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
             break
         case .cleanupGuide:
             let vc = CleanUpGuideListViewController()
+            vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)
+        case .upgradePremium:
+            if PremiumManager.shared.isPremium {
+                let alert = UIAlertController(title: "Premium Active", message: "You have unlimited access to all features and zero ads.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Awesome", style: .default))
+                present(alert, animated: true)
+            } else {
+                if #available(iOS 15.0, *) {
+                    let paywallVC = PaywallViewController()
+                    paywallVC.modalPresentationStyle = .fullScreen
+                    present(paywallVC, animated: true)
+                }
+            }
+        case .restorePurchases:
+            if #available(iOS 15.0, *) {
+                Task {
+                    let success = await PremiumManager.shared.restorePurchases()
+                    await MainActor.run {
+                        if success {
+                            let alert = UIAlertController(title: "Restored", message: "Your premium membership was successfully restored.", preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "OK", style: .default))
+                            self.present(alert, animated: true)
+                        } else {
+                            let alert = UIAlertController(title: "Restore Failed", message: "No active premium subscriptions found to restore.", preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "OK", style: .default))
+                            self.present(alert, animated: true)
+                        }
+                    }
+                }
+            }
         }
+    }
+    
+    @objc private func premiumStatusChanged() {
+        loadSettings()
     }
 }
 
@@ -257,6 +335,7 @@ class SettingsCell: UITableViewCell {
     private let iconContainer = UIView()
     private let iconView = UIImageView()
     private let titleLabel = UILabel()
+    private let detailLabel = UILabel()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -284,6 +363,12 @@ class SettingsCell: UITableViewCell {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
         
+        detailLabel.font = .systemFont(ofSize: 15, weight: .regular)
+        detailLabel.textColor = .secondaryLabel
+        detailLabel.textAlignment = .right
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(detailLabel)
+        
         NSLayoutConstraint.activate([
             iconContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             iconContainer.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -296,7 +381,11 @@ class SettingsCell: UITableViewCell {
             iconView.heightAnchor.constraint(equalToConstant: 16),
             
             titleLabel.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
+            detailLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            detailLabel.leadingAnchor.constraint(greaterThanOrEqualTo: titleLabel.trailingAnchor, constant: 8)
         ])
     }
     
@@ -310,6 +399,32 @@ class SettingsCell: UITableViewCell {
         } else {
             titleLabel.textColor = .label
         }
+        
+        if item.type == .currentPlan {
+            accessoryType = .none
+            if PremiumManager.shared.isPremium {
+                if let planID = PremiumManager.shared.activePlanID {
+                    if planID.contains("weekly") {
+                        detailLabel.text = "Weekly Plan"
+                    } else if planID.contains("monthly") {
+                        detailLabel.text = "Monthly Plan"
+                    } else if planID.contains("yearly") {
+                        detailLabel.text = "Yearly Plan"
+                    } else {
+                        detailLabel.text = "Premium Pro"
+                    }
+                } else {
+                    detailLabel.text = "Premium Pro"
+                }
+            } else {
+                detailLabel.text = "Free Plan"
+            }
+            detailLabel.isHidden = false
+        } else {
+            accessoryType = .disclosureIndicator
+            detailLabel.text = ""
+            detailLabel.isHidden = true
+        }
     }
 }
 
@@ -320,6 +435,8 @@ class SettingsToggleCell: UITableViewCell {
     private let iconView = UIImageView()
     private let titleLabel = UILabel()
     private let toggleSwitch = UISwitch()
+    
+    var onToggle: ((Bool) -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -388,14 +505,19 @@ class SettingsToggleCell: UITableViewCell {
     @objc private func didToggle() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         let isDark = toggleSwitch.isOn
-        UserDefaults.standard.set(isDark, forKey: "isDarkModeForced")
-        let style: UIUserInterfaceStyle = isDark ? .dark : .light
         
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            windowScene.windows.forEach { window in
-                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                    window.overrideUserInterfaceStyle = style
-                }, completion: nil)
+        if let onToggle = onToggle {
+            onToggle(isDark)
+        } else {
+            UserDefaults.standard.set(isDark, forKey: "isDarkModeForced")
+            let style: UIUserInterfaceStyle = isDark ? .dark : .light
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                windowScene.windows.forEach { window in
+                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                        window.overrideUserInterfaceStyle = style
+                    }, completion: nil)
+                }
             }
         }
     }

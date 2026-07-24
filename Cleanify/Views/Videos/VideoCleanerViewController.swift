@@ -34,10 +34,14 @@ class VideoCleanerViewController: UIViewController, CompressPromoBannerDelegate 
         }
     }
     
+    private var bannerAdHelper: BannerAdHelper?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadData()
+        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
+        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -49,6 +53,7 @@ class VideoCleanerViewController: UIViewController, CompressPromoBannerDelegate 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        tableView.contentInset.bottom = 60
         
         if !AppState.hasShownRescanPopup {
             AppState.hasShownRescanPopup = true

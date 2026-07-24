@@ -10,6 +10,7 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var wasInBackground = false
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
@@ -35,8 +36,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        // Show App Open Ad only when actually returning from background, not from inactive states like permission dialogs
+        if wasInBackground {
+            wasInBackground = false
+            AppOpenAdManager.shared.showAdIfAvailable()
+        }
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -55,6 +59,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
 
         // Save changes in the application's managed object context when the application transitions to the background.
+        wasInBackground = true
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
 

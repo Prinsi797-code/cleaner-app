@@ -34,6 +34,18 @@ class VideoGridViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         loadAssets()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handlePremiumStatusChange), name: .premiumStatusChanged, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handlePremiumStatusChange() {
+        if PremiumManager.shared.isPremium {
+            collectionView.reloadData()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,6 +58,11 @@ class VideoGridViewController: UIViewController {
         title = categoryTitle
         navigationItem.largeTitleDisplayMode = .never
         
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(handleBack))
+        navigationItem.leftBarButtonItem = backButton
+        
+        VideosInterstitialManager.shared.preloadInterstitialAd()
+        
         // Grid Layout configuration
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 2
@@ -56,6 +73,7 @@ class VideoGridViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(VideoGridCell.self, forCellWithReuseIdentifier: "VideoCell")
+        collectionView.register(VideoNativeAdCollectionViewCell.self, forCellWithReuseIdentifier: "AdCell")
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
         
@@ -139,6 +157,12 @@ class VideoGridViewController: UIViewController {
         deleteButton.alpha = selectedAssets.isEmpty ? 0.5 : 1.0
     }
     
+    @objc private func handleBack() {
+        VideosInterstitialManager.shared.showAdOnBack(from: self) { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
+    }
+    
     @objc private func didTapDelete() {
         guard !selectedAssets.isEmpty else { return }
         
@@ -175,15 +199,35 @@ class VideoGridViewController: UIViewController {
 // MARK: - CollectionView delegate flow
 extension VideoGridViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
+    private var isNativeAdEnabled: Bool {
+        return !PremiumManager.shared.isPremium
+    }
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return assets.count
+        let assetsCount = assets.count
+        if isNativeAdEnabled && assetsCount > 0 {
+            return assetsCount + (assetsCount / 9) + 1
+        }
+        return assetsCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if isNativeAdEnabled && (indexPath.item == 0 || indexPath.item % 10 == 0) {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AdCell", for: indexPath) as? VideoNativeAdCollectionViewCell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(viewController: self)
+            cell.onAdLoaded = { [weak self] in
+                // Handled in cell
+            }
+            return cell
+        }
+        
+        let assetIndex = isNativeAdEnabled ? indexPath.item - (indexPath.item / 10) - 1 : indexPath.item
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VideoCell", for: indexPath) as? VideoGridCell else {
             return UICollectionViewCell()
         }
-        let asset = assets[indexPath.item]
+        let asset = assets[assetIndex]
         let size = VideoScanManager.shared.videoSizes[asset.localIdentifier] ?? 0
         let isSelected = selectedAssets.contains(asset)
         cell.configure(with: asset, fileSize: size, isChecked: isSelected)
@@ -191,7 +235,12 @@ extension VideoGridViewController: UICollectionViewDelegate, UICollectionViewDat
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let asset = assets[indexPath.item]
+        if isNativeAdEnabled && (indexPath.item == 0 || indexPath.item % 10 == 0) {
+            return
+        }
+        
+        let assetIndex = isNativeAdEnabled ? indexPath.item - (indexPath.item / 10) - 1 : indexPath.item
+        let asset = assets[assetIndex]
         
         if selectedAssets.contains(asset) {
             selectedAssets.remove(asset)
@@ -204,8 +253,12 @@ extension VideoGridViewController: UICollectionViewDelegate, UICollectionViewDat
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if isNativeAdEnabled && (indexPath.item == 0 || indexPath.item % 10 == 0) {
+            let width = collectionView.bounds.width - 16
+            return CGSize(width: width, height: 120) // Adjust height as necessary for Native Ad
+        }
         let columns: CGFloat = 3
-        let width = (collectionView.bounds.width - (columns - 1) * 2) / columns
+        let width = floor((collectionView.bounds.width - (columns - 1) * 2) / columns)
         return CGSize(width: width, height: width)
     }
 }
@@ -335,6 +388,59 @@ class VideoGridCell: UICollectionViewCell {
         imageView.image = nil
         if let requestID = imageRequestID {
             PHImageManager.default().cancelImageRequest(requestID)
+        }
+    }
+}
+
+// MARK: - VideoNativeAdCollectionViewCell
+class VideoNativeAdCollectionViewCell: UICollectionViewCell {
+    let containerView = UIView()
+    private var nativeAdHelper: VideosNativeAdHelper?
+    
+    var onAdLoaded: (() -> Void)?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        nativeAdHelper = nil
+        onAdLoaded = nil
+        // Do not remove subviews here. Let the new AdHelper overwrite them once the ad loads, 
+        // to prevent the cell from blinking blank while scrolling.
+    }
+    
+    private func setupUI() {
+        contentView.backgroundColor = .clear
+        containerView.backgroundColor = .clear
+        containerView.layer.cornerRadius = 12
+        containerView.clipsToBounds = true
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(containerView)
+        
+        NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4)
+        ])
+    }
+    
+    func configure(viewController: UIViewController) {
+        if nativeAdHelper == nil {
+            nativeAdHelper = VideosNativeAdHelper(containerView: containerView, viewController: viewController)
+            nativeAdHelper?.onAdLoaded = { [weak self] in
+                self?.containerView.backgroundColor = .secondarySystemGroupedBackground
+                self?.onAdLoaded?()
+            }
+            nativeAdHelper?.fetchRemoteConfigAndLoadNativeAd()
         }
     }
 }

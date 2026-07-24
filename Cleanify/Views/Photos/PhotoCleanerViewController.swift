@@ -39,11 +39,14 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
     }
     
     private var recentlyDeletedCard: RecentlyDeletedCardView?
+    private var bannerAdHelper: BannerAdHelper?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadData()
+        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
+        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -55,6 +58,8 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        PhotosInterstitialManager.shared.preloadInterstitialAd()
+        tableView.contentInset.bottom = 60
         
         if !AppState.hasShownRescanPopup {
             AppState.hasShownRescanPopup = true
@@ -154,7 +159,7 @@ class PhotoCleanerViewController: UIViewController, RecentlyDeletedCardDelegate 
         recentlyDeletedCard = RecentlyDeletedCardView()
         recentlyDeletedCard?.delegate = self
         
-        let footerContainer = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 310))
+        let footerContainer = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 360))
         recentlyDeletedCard?.translatesAutoresizingMaskIntoConstraints = false
         if let card = recentlyDeletedCard {
             footerContainer.addSubview(card)

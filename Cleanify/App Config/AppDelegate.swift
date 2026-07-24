@@ -7,6 +7,9 @@
 
 import UIKit
 import CoreData
+import FirebaseCore
+import FirebaseAnalytics
+import GoogleMobileAds
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,6 +18,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        FirebaseApp.configure()
+        Analytics.setAnalyticsCollectionEnabled(true)
+        Analytics.logEvent(AnalyticsEventAppOpen, parameters: nil)
+        
+        // Initialize AdMob SDK & fetch App Open Ad
+        MobileAds.shared.start(completionHandler: nil)
+        AppOpenAdManager.shared.fetchAndLoadAd()
         return true
     }
 

@@ -34,16 +34,17 @@ class VideoCompressionManager {
             session.outputFileType = .mp4
             session.shouldOptimizeForNetworkUse = true
             
-            // Setup progress timer
-            let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-                DispatchQueue.main.async {
+            // Setup progress timer on main thread
+            var timer: Timer?
+            DispatchQueue.main.async {
+                timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
                     progressHandler(session.progress)
                 }
             }
             
             session.exportAsynchronously {
-                timer.invalidate()
                 DispatchQueue.main.async {
+                    timer?.invalidate()
                     progressHandler(1.0)
                     
                     switch session.status {
@@ -109,14 +110,7 @@ class VideoCompressionManager {
                     self.markCompressed(assetId: originalAsset.localIdentifier)
                     self.markCompressed(assetId: newAsset.localIdentifier)
                     
-                    PHPhotoLibrary.shared().performChanges({
-                        PHAssetChangeRequest.deleteAssets([originalAsset] as NSArray)
-                    }) { deleteSuccess, _ in
-                        
-                        DispatchQueue.main.async {
-                            completion(.success((newAsset, deleteSuccess)))
-                        }
-                    }
+                    completion(.success((newAsset, false))) // Deletion is now handled by the caller
                 } else {
                     let err = saveError ?? NSError(domain: "VideoCompression", code: 6, userInfo: [NSLocalizedDescriptionKey: "Failed to save compressed video."])
                     completion(.failure(err))

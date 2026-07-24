@@ -32,6 +32,7 @@ class CleanUpStepsViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         populateSteps()
+        SettingsInterstitialManager.shared.preloadInterstitialAd()
     }
     
     private func setupUI() {
@@ -117,7 +118,9 @@ class CleanUpStepsViewController: UIViewController {
     
     @objc private func didTapBack() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        navigationController?.popViewController(animated: true)
+        SettingsInterstitialManager.shared.showAdOnBack(from: self) { [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
     }
     
     private func populateSteps() {
