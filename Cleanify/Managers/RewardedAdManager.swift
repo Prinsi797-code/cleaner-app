@@ -108,6 +108,7 @@ class RewardedAdManager: NSObject, FullScreenContentDelegate {
         self.pendingCompletionAction = completion
         ad.present(from: vc) { [weak self] in
             // Reward granted
+            AnalyticsManager.shared.logRewardedAdCompleted(rewardType: "compress_or_clean")
             self?.markAdShown(flag: flag, key: "reward")
             self?.earnedReward = true
         }

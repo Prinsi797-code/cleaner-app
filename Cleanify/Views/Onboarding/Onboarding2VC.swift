@@ -31,6 +31,7 @@ class Onboarding2VC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         animateIn()
+        AnalyticsManager.shared.logOnboardingStepViewed(step: 2, title: "Find & Remove Duplicates")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -203,6 +204,7 @@ class Onboarding2VC: UIViewController {
     
     @objc private func didTapNext() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        AnalyticsManager.shared.logOnboardingNextClicked(fromStep: 2)
         
         UIView.animate(withDuration: 0.1, animations: {
             self.nextButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)

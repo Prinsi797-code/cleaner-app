@@ -145,6 +145,7 @@ class SettingsViewController: UIViewController {
     // MARK: - Action Handlers
     
     private func showRecentlyDeletedGuide() {
+        AnalyticsManager.shared.logGuideOpened(guideType: "recently_deleted")
         let alert = UIAlertController(
             title: "Recently Deleted Guide",
             message: "iOS sandboxing prevents direct cleaning of Apple's trash album. To permanently free up space:\n\n1. Open the native Photos App\n2. Navigate to Albums tab\n3. Scroll down to 'Recently Deleted'\n4. Unlock it and tap 'Delete All'\n\nWould you like to open the Photos App now?",
@@ -175,6 +176,7 @@ class SettingsViewController: UIViewController {
     }
     
     private func triggerShare() {
+        AnalyticsManager.shared.logShareClicked()
         let text = "Check out Cleanify! The fast and premium way to clean your \(deviceName) storage."
         let url = URL(string: "https://apps.apple.com/app/id6760296662")!
         let items: [Any] = [text, url]
@@ -183,12 +185,14 @@ class SettingsViewController: UIViewController {
     }
     
     private func triggerRate() {
+        AnalyticsManager.shared.logRateUsClicked()
         if let url = URL(string: "itms-apps://itunes.apple.com/app/id6760296662?action=write-review") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
     
     private func showWebLink(title: String, urlString: String) {
+        AnalyticsManager.shared.logPrivacyClicked()
         if let url = URL(string: urlString) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
@@ -300,6 +304,7 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
             } else {
                 if #available(iOS 15.0, *) {
                     let paywallVC = PaywallViewController()
+                    paywallVC.source = "settings_tab"
                     paywallVC.modalPresentationStyle = .fullScreen
                     present(paywallVC, animated: true)
                 }
@@ -505,6 +510,7 @@ class SettingsToggleCell: UITableViewCell {
     @objc private func didToggle() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         let isDark = toggleSwitch.isOn
+        AnalyticsManager.shared.logThemeToggled(theme: isDark ? "Dark" : "Light")
         
         if let onToggle = onToggle {
             onToggle(isDark)

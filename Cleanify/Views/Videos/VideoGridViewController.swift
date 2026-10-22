@@ -173,6 +173,9 @@ class VideoGridViewController: UIViewController {
             DispatchQueue.main.async {
                 if success {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    if let self = self {
+                        AnalyticsManager.shared.logVideoDeleteSuccess(category: self.categoryTitle, count: assetsArray.count)
+                    }
                     self?.removeDeletedAssets(assetsArray)
                     self?.loadAssets()
                 } else if let error = error {

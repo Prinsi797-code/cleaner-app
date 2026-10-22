@@ -28,7 +28,19 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
         let settingsVC = SettingsViewController()
         
         // Wrap in Navigation Controllers for standard navigation UI
-        let scanNav = createNav(with: scanVC, title: "Scan", image: UIImage(systemName: "wand.and.sparkles"))
+        let symbolName: String
+
+        if #available(iOS 26.0, *) {
+            symbolName = "wand.and.sparkles"
+        } else {
+            symbolName = "wand.and.stars"
+        }
+
+        let scanNav = createNav(
+            with: scanVC,
+            title: "Scan",
+            image: UIImage(systemName: symbolName)
+        )
         let photosNav = createNav(with: photosVC, title: "Photos", image: UIImage(systemName: "photo.on.rectangle"))
         let videosNav = createNav(with: videosVC, title: "Videos", image: UIImage(systemName: "video"))
         let contactsNav = createNav(with: contactsVC, title: "Contacts", image: UIImage(systemName: "person.crop.circle"))

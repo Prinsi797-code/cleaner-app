@@ -33,7 +33,7 @@
     
     <key>GADApplicationIdentifier</key>
     <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~1458002511 -->
-    <string>ca-app-pub-3940256099942544~1458002511</string>
+    <string>ca-app-pub-8004428334722354~5060112025</string>
     <key>SKAdNetworkItems</key>
     <array>
       <dict>
@@ -237,5 +237,8 @@
         <string>3qcr597p9d.skadnetwork</string>
       </dict>
     </array>
+    
+    <key>UIRequiresFullScreen</key>
+    <true/>
 </dict>
 </plist>

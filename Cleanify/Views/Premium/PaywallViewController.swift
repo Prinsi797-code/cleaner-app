@@ -35,6 +35,7 @@ class PaywallViewController: UIViewController {
     private let restoreButton = UIButton(type: .system)
     private let footerTextLabel = UILabel()
     
+    var source: String = "general"
     private var selectedIndex = 1 // Default to Monthly (middle)
     private var products: [Product] = []
     private var loadingSpinner = UIActivityIndicatorView(style: .large)
@@ -48,6 +49,11 @@ class PaywallViewController: UIViewController {
         
         // Fetch products
         loadProducts()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsManager.shared.logPaywallViewed(source: source)
     }
     
     override func viewDidLayoutSubviews() {
@@ -161,8 +167,8 @@ class PaywallViewController: UIViewController {
             period: "Weekly Plan",
             subtext: "Stay consistent, every week",
             accessBadgeText: "7 Days Access",
-            price: "₹99.00",
-            breakdown: "₹14.14 / day",
+            price: "--",
+            breakdown: "-- / day",
             saveText: nil,
             index: 0
         )
@@ -170,8 +176,8 @@ class PaywallViewController: UIViewController {
             period: "Monthly Plan",
             subtext: "Build a healthy habit",
             accessBadgeText: "30 Days Access",
-            price: "₹299.00",
-            breakdown: "₹9.96 / day",
+            price: "--",
+            breakdown: "-- / day",
             saveText: nil,
             index: 1
         )
@@ -179,8 +185,8 @@ class PaywallViewController: UIViewController {
             period: "Yearly Plan",
             subtext: "Best value, stay fit all year",
             accessBadgeText: "365 Days Access",
-            price: "₹999.00",
-            breakdown: "₹2.73 / day",
+            price: "--",
+            breakdown: "-- / day",
             saveText: "Save 77%",
             index: 2
         )
@@ -459,20 +465,35 @@ class PaywallViewController: UIViewController {
         selectedIndex = sender.index
         updateCardSelection()
         UISelectionFeedbackGenerator().selectionChanged()
+        
+        if sender.index < products.count {
+            let product = products[sender.index]
+            AnalyticsManager.shared.logPaywallPlanSelected(
+                planId: product.id,
+                planPeriod: product.displayName,
+                price: product.displayPrice
+            )
+        }
     }
     
     @objc private func didTapClose() {
+        AnalyticsManager.shared.logPaywallDismissed()
         dismiss(animated: true)
     }
     
     @objc private func didTapSubscribe() {
         guard selectedIndex < products.count else {
-            // Fallback simulated success if StoreKit products couldn't load (Sandbox safety)
-            simulatePremiumActivation()
+            showErrorAlert(message: "Unable to connect to the App Store. Please check your internet connection and try again.")
             return
         }
         
         let product = products[selectedIndex]
+        AnalyticsManager.shared.logSubscribeClicked(
+            planId: product.id,
+            planPeriod: product.displayName,
+            price: product.displayPrice
+        )
+        
         loadingSpinner.startAnimating()
         
         Task {
@@ -480,23 +501,18 @@ class PaywallViewController: UIViewController {
             await MainActor.run {
                 self.loadingSpinner.stopAnimating()
                 if success {
+                    let priceDouble = NSDecimalNumber(decimal: product.price).doubleValue
+                    AnalyticsManager.shared.logPurchaseSuccess(productId: product.id, price: priceDouble)
                     self.showSuccessAlert()
                 } else {
+                    AnalyticsManager.shared.logPurchaseFailed(productId: product.id, errorMessage: "Purchase could not be completed.")
                     self.showErrorAlert(message: "Purchase could not be completed.")
                 }
             }
         }
     }
     
-    private func simulatePremiumActivation() {
-        let alert = UIAlertController(title: "Sandbox Mode", message: "Connecting to App Store sandbox failed. Would you like to simulate Premium activation?", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Simulate Upgrade", style: .default, handler: { [weak self] _ in
-            PremiumManager.shared.isPremium = true
-            self?.showSuccessAlert()
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
-    }
+
     
     private func showSuccessAlert() {
         let alert = UIAlertController(title: "Premium Activated", message: "Thank you for upgrading! You now have unlimited access with no ads.", preferredStyle: .alert)
@@ -513,12 +529,14 @@ class PaywallViewController: UIViewController {
     }
     
     @objc private func didTapRestore() {
+        AnalyticsManager.shared.logRestoreClicked()
         loadingSpinner.startAnimating()
         Task {
             let success = await PremiumManager.shared.restorePurchases()
             await MainActor.run {
                 self.loadingSpinner.stopAnimating()
                 if success {
+                    AnalyticsManager.shared.logRestoreSuccess(productId: "restored_active")
                     let alert = UIAlertController(title: "Restored", message: "Your premium membership was successfully restored.", preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
                         self?.dismiss(animated: true)

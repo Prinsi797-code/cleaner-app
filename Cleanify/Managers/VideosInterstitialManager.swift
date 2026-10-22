@@ -77,6 +77,7 @@ class VideosInterstitialManager: NSObject, FullScreenContentDelegate {
         }
         
         self.pendingDismissAction = dismissAction
+        AnalyticsManager.shared.logInterstitialAdShown(placement: "videos_back")
         ad.present(from: vc)
         interstitialAd = nil
         markAdShown(flag: flag, key: "videos_inter")

@@ -167,6 +167,7 @@ class PhotoScanManager {
     }
     
     func scanPhotoLibrary(progressHandler: @escaping (String, Double) -> Void, completion: @escaping () -> Void) {
+        AnalyticsManager.shared.logPhotoScanStarted(source: "scan_library")
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else {
             completion()
@@ -246,6 +247,15 @@ class PhotoScanManager {
             self.scanForDuplicatesAndSimilars(assets: tempPhotos, progressHandler: progressHandler)
             
             progressHandler("Finalizing metrics...", 0.95)
+            let duplicateCount = self.duplicateGroups.reduce(0) { $0 + $1.assets.count }
+            let similarCount = self.similarGroups.reduce(0) { $0 + $1.assets.count }
+            let screenshotCount = self.screenshots.count
+            AnalyticsManager.shared.logPhotoScanCompleted(
+                duplicates: duplicateCount,
+                similar: similarCount,
+                screenshots: screenshotCount,
+                totalBytes: 0
+            )
             DispatchQueue.main.async {
                 completion()
             }

@@ -210,7 +210,9 @@ class PhotoGridViewController: UIViewController {
     
     @objc private func didTapSelectAll() {
         let total = getTotalAssetCount()
-        if selectedAssets.count == total && total > 0 {
+        let willDeselect = selectedAssets.count == total && total > 0
+        AnalyticsManager.shared.logPhotoSelectAllToggled(category: categoryTitle, isSelected: !willDeselect)
+        if willDeselect {
             selectedAssets.removeAll()
         } else {
             selectedAssets.removeAll()
@@ -243,6 +245,7 @@ class PhotoGridViewController: UIViewController {
         guard !selectedAssets.isEmpty else { return }
         
         let assetsArray = Array(selectedAssets)
+        AnalyticsManager.shared.logPhotoDeleteInitiated(category: categoryTitle, count: assetsArray.count)
         
         if !PremiumManager.shared.canDeletePhotos(count: assetsArray.count) {
             let remaining = PremiumManager.shared.getRemainingFreeDeletes()
@@ -254,6 +257,7 @@ class PhotoGridViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
                 if #available(iOS 15.0, *) {
                     let paywallVC = PaywallViewController()
+                    paywallVC.source = "photo_grid_limit"
                     paywallVC.modalPresentationStyle = .fullScreen
                     self?.present(paywallVC, animated: true)
                 }
@@ -285,6 +289,9 @@ class PhotoGridViewController: UIViewController {
                 if success {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                     PremiumManager.shared.recordDeletions(count: assetsArray.count)
+                    if let self = self {
+                        AnalyticsManager.shared.logPhotoDeleteSuccess(category: self.categoryTitle, count: assetsArray.count)
+                    }
                     self?.removeDeletedAssets(assetsArray)
                     self?.loadAssets()
                 } else if let error = error {

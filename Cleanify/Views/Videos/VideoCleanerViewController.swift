@@ -222,6 +222,7 @@ extension VideoCleanerViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let category = categories[indexPath.row]
+        AnalyticsManager.shared.logVideoCategorySelected(category: category.title, count: category.count)
         
         let gridVC = VideoGridViewController(categoryType: category.type, categoryTitle: category.title)
         gridVC.hidesBottomBarWhenPushed = true

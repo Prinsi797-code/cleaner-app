@@ -227,6 +227,7 @@ extension PhotoCleanerViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let category = categories[indexPath.row]
+        AnalyticsManager.shared.logPhotoCategorySelected(category: category.title, count: category.count)
         
         let gridVC = PhotoGridViewController(categoryType: category.type, categoryTitle: category.title)
         gridVC.hidesBottomBarWhenPushed = true
@@ -236,6 +237,7 @@ extension PhotoCleanerViewController: UITableViewDelegate, UITableViewDataSource
     // MARK: - RecentlyDeletedCardDelegate
     
     func didTapOpenPhotos() {
+        AnalyticsManager.shared.logRecentlyDeletedGuideOpened(source: "photos_tab")
         if let url = URL(string: "photos-redirect://") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }

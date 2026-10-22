@@ -122,19 +122,74 @@ class SplashViewController: UIViewController {
     private func loadDataAndTransition() {
         loadStartTime = Date()
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            let _ = PhotoScanManager.shared.loadFromDisk()
-            let _ = VideoScanManager.shared.loadFromDisk()
-            let _ = ContactScanManager.shared.loadFromDisk()
-            
-            let elapsedTime = Date().timeIntervalSince(self.loadStartTime ?? Date())
-            let minimumDisplayDuration: TimeInterval = 1.4
-            let remainingTime = max(0, minimumDisplayDuration - elapsedTime)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + remainingTime) {
-                self.transitionToNextScreen()
+        checkForForceUpdate { [weak self] needsUpdate in
+            guard let self = self else { return }
+            if needsUpdate {
+                self.activityIndicator.stopAnimating()
+                self.showForceUpdateAlert()
+            } else {
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let _ = PhotoScanManager.shared.loadFromDisk()
+                    let _ = VideoScanManager.shared.loadFromDisk()
+                    let _ = ContactScanManager.shared.loadFromDisk()
+                    
+                    let elapsedTime = Date().timeIntervalSince(self.loadStartTime ?? Date())
+                    let minimumDisplayDuration: TimeInterval = 1.4
+                    let remainingTime = max(0, minimumDisplayDuration - elapsedTime)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + remainingTime) {
+                        self.transitionToNextScreen()
+                    }
+                }
             }
         }
+    }
+    
+    private func checkForForceUpdate(completion: @escaping (Bool) -> Void) {
+        guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            completion(false)
+            return
+        }
+        
+        let urlString = "https://itunes.apple.com/lookup?id=6760296662"
+        guard let url = URL(string: urlString) else {
+            completion(false)
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            guard error == nil, let data = data else {
+                DispatchQueue.main.async { completion(false) }
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+                   let results = json["results"] as? [[String: Any]],
+                   let appStoreVersion = results.first?["version"] as? String {
+                    
+                    if currentVersion.compare(appStoreVersion, options: .numeric) == .orderedAscending {
+                        DispatchQueue.main.async { completion(true) }
+                        return
+                    }
+                }
+            } catch {
+                // Ignore error
+            }
+            
+            DispatchQueue.main.async { completion(false) }
+        }
+        task.resume()
+    }
+    
+    private func showForceUpdateAlert() {
+        let alert = UIAlertController(title: "Update Required", message: "A new version of Cleanify is available. Please update to continue using the app.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Update Now", style: .default, handler: { _ in
+            if let url = URL(string: "itms-apps://itunes.apple.com/app/id6760296662") {
+                UIApplication.shared.open(url)
+            }
+        }))
+        present(alert, animated: true)
     }
     
     private func transitionToNextScreen() {

@@ -1023,6 +1023,7 @@ extension ScanViewController: SwipePromoBannerDelegate {
         if !PremiumManager.shared.isPremium {
             if #available(iOS 15.0, *) {
                 let paywallVC = PaywallViewController()
+                paywallVC.source = "scan_swipe_banner"
                 paywallVC.modalPresentationStyle = .fullScreen
                 present(paywallVC, animated: true)
             }
@@ -1042,6 +1043,7 @@ extension ScanViewController: SwipePromoBannerDelegate {
     @objc private func didTapPremium() {
         if #available(iOS 15.0, *) {
             let paywallVC = PaywallViewController()
+            paywallVC.source = "scan_premium_button"
             paywallVC.modalPresentationStyle = .fullScreen
             present(paywallVC, animated: true)
         }

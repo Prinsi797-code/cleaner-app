@@ -35,6 +35,7 @@ class Onboarding3VC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         animateIn()
+        AnalyticsManager.shared.logOnboardingStepViewed(step: 3, title: "Organize Photos & Free Up Space")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -207,6 +208,7 @@ class Onboarding3VC: UIViewController {
     
     @objc private func didTapNext() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        AnalyticsManager.shared.logOnboardingNextClicked(fromStep: 3)
         
         UIView.animate(withDuration: 0.1, animations: {
             self.nextButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)

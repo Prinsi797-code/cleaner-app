@@ -58,7 +58,11 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
         setupBackButton()
         PhotosInterstitialManager.shared.preloadInterstitialAd()
         
-        confirmDeleteButton = UIBarButtonItem(title: "Delete (0)", style: .prominent, target: self, action: #selector(handleDeleteSelected))
+        if #available(iOS 26.0, *) {
+            confirmDeleteButton = UIBarButtonItem(title: "Delete (0)", style: .prominent, target: self, action: #selector(handleDeleteSelected))
+        } else {
+            // Fallback on earlier versions
+        }
         confirmDeleteButton.tintColor = .systemRed
         confirmDeleteButton.isEnabled = false
         navigationItem.rightBarButtonItem = confirmDeleteButton
@@ -86,6 +90,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        AnalyticsManager.shared.logSwipeScreenOpened(initialCategory: selectedCategory.rawValue)
         // Disable swipe back gesture so users don't accidentally exit while swiping cards
         navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         navigationController?.interactivePopGestureRecognizer?.delegate = self
@@ -453,6 +458,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     
     @objc private func handleUndo() {
         guard currentIndex > 0 else { return }
+        AnalyticsManager.shared.logSwipeActionUndo()
         
         let previousAsset = allAssets[currentIndex - 1]
         trashedAssets.removeValue(forKey: previousAsset.localIdentifier)
@@ -494,6 +500,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
             alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
                 if #available(iOS 15.0, *) {
                     let paywallVC = PaywallViewController()
+                    paywallVC.source = "swipe_photos_limit"
                     paywallVC.modalPresentationStyle = .fullScreen
                     self?.present(paywallVC, animated: true)
                 }
@@ -509,6 +516,8 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
             DispatchQueue.main.async {
                 if success {
                     PremiumManager.shared.recordDeletions(count: count)
+                    let totalBytes = self.trashedAssets.values.compactMap { self.trashedAssetSizes[$0.localIdentifier] }.reduce(0, +)
+                    AnalyticsManager.shared.logSwipeDeleteConfirmed(count: count, freedBytes: totalBytes)
                     let deletedIds = Set(self.trashedAssets.keys)
                     PhotoScanManager.shared.removeAssets(withIds: deletedIds)
                     
@@ -520,6 +529,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     }
     
     func cardDidSwipeLeft(_ card: SwipeCardView) {
+        AnalyticsManager.shared.logSwipeActionTrash(assetType: "photo")
         if let asset = card.asset {
             trashedAssets[asset.localIdentifier] = asset
             interactedAssets.insert(asset.localIdentifier)
@@ -530,6 +540,7 @@ class SwipePhotosViewController: UIViewController, UIGestureRecognizerDelegate, 
     }
     
     func cardDidSwipeRight(_ card: SwipeCardView) {
+        AnalyticsManager.shared.logSwipeActionKeep(assetType: "photo")
         if let asset = card.asset {
             interactedAssets.insert(asset.localIdentifier)
         }

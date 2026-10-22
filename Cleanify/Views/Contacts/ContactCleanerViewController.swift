@@ -43,6 +43,12 @@ class ContactCleanerViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         tableView.contentInset.bottom = 60
+        let duplicateCount = ContactScanManager.shared.duplicateNameGroups.count + ContactScanManager.shared.duplicatePhoneGroups.count
+        let incompleteCount = ContactScanManager.shared.incompleteContactsList.count
+        AnalyticsManager.shared.logContactsTabOpened(
+            duplicateGroups: duplicateCount,
+            incomplete: incompleteCount
+        )
         
         if !AppState.hasShownRescanPopup {
             AppState.hasShownRescanPopup = true
@@ -201,12 +207,21 @@ class ContactCleanerViewController: UIViewController {
     
     @objc private func didChangeSegment() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let segTitle: String
         switch segmentControl.selectedSegmentIndex {
-        case 0: activeMode = .names
-        case 1: activeMode = .numbers
-        case 2: activeMode = .incomplete
-        default: break
+        case 0:
+            activeMode = .names
+            segTitle = "Duplicate Names"
+        case 1:
+            activeMode = .numbers
+            segTitle = "Duplicate Numbers"
+        case 2:
+            activeMode = .incomplete
+            segTitle = "Incomplete"
+        default:
+            segTitle = "Other"
         }
+        AnalyticsManager.shared.logContactsSegmentChanged(segment: segTitle)
         loadData()
     }
     
@@ -247,6 +262,7 @@ class ContactCleanerViewController: UIViewController {
         do {
             try store.execute(saveRequest)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
+            AnalyticsManager.shared.logContactsMerged(count: group.contacts.count)
             showToast(message: "Merged successfully!")
             
             ContactScanManager.shared.scanContacts(progressHandler: { _, _ in }, completion: { [weak self] in
@@ -267,6 +283,7 @@ class ContactCleanerViewController: UIViewController {
         do {
             try store.execute(saveRequest)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
+            AnalyticsManager.shared.logIncompleteContactDeleted()
             showToast(message: "Contact deleted!")
             
             ContactScanManager.shared.scanContacts(progressHandler: { _, _ in }, completion: { [weak self] in
@@ -357,6 +374,7 @@ extension ContactCleanerViewController: UITableViewDelegate, UITableViewDataSour
             alert.addAction(UIAlertAction(title: "Upgrade to Premium", style: .default, handler: { [weak self] _ in
                 if #available(iOS 15.0, *) {
                     let paywallVC = PaywallViewController()
+                    paywallVC.source = "contact_merge"
                     paywallVC.modalPresentationStyle = .fullScreen
                     self?.present(paywallVC, animated: true)
                 }

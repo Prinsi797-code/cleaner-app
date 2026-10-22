@@ -53,6 +53,7 @@ class Onboarding4VC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         animateIn()
+        AnalyticsManager.shared.logOnboardingStepViewed(step: 4, title: "Select Main Problem")
     }
     
     private func setupTheme() {
@@ -190,16 +191,19 @@ class Onboarding4VC: UIViewController {
     @objc private func didSelectOption1() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 1)
+        AnalyticsManager.shared.logOnboardingOptionSelected(id: 1, name: "My storage is full")
     }
     
     @objc private func didSelectOption2() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 2)
+        AnalyticsManager.shared.logOnboardingOptionSelected(id: 2, name: "I want to organize photos")
     }
     
     @objc private func didSelectOption3() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         highlightSelection(index: 3)
+        AnalyticsManager.shared.logOnboardingOptionSelected(id: 3, name: "I am just curious")
     }
     
     private func highlightSelection(index: Int) {
@@ -224,6 +228,15 @@ class Onboarding4VC: UIViewController {
     }
     
     private func completeOnboarding() {
+        let selectedName: String
+        switch selectedIndex {
+        case 1: selectedName = "My storage is full"
+        case 2: selectedName = "I want to organize photos"
+        case 3: selectedName = "I am just curious"
+        default: selectedName = "None"
+        }
+        AnalyticsManager.shared.logOnboardingCompleted(selectedOption: selectedName)
+        
         UserDefaults.standard.set(true, forKey: "onboarding_completed")
         if let window = self.view.window {
             UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {

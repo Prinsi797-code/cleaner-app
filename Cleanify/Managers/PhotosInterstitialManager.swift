@@ -82,6 +82,7 @@ class PhotosInterstitialManager: NSObject, FullScreenContentDelegate {
         }
         
         self.pendingDismissAction = dismissAction
+        AnalyticsManager.shared.logInterstitialAdShown(placement: "photos_back")
         ad.present(from: vc)
         interstitialAd = nil
         markAdShown(flag: flag, key: "photos_inter")

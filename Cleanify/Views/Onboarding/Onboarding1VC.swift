@@ -35,6 +35,7 @@ class Onboarding1VC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         animateIn()
+        AnalyticsManager.shared.logOnboardingStepViewed(step: 1, title: "Welcome")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -207,6 +208,7 @@ class Onboarding1VC: UIViewController {
     
     @objc private func didTapNext() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        AnalyticsManager.shared.logOnboardingNextClicked(fromStep: 1)
         
         // Button tap animation
         UIView.animate(withDuration: 0.1, animations: {

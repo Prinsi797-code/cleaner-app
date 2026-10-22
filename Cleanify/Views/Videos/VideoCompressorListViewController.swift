@@ -157,6 +157,7 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
             guard let self = self else { return }
             if #available(iOS 15.0, *) {
                 let paywallVC = PaywallViewController()
+                paywallVC.source = "video_compress_limit"
                 paywallVC.modalPresentationStyle = .fullScreen
                 self.present(paywallVC, animated: true)
             }
@@ -175,6 +176,10 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
         present(progressVC, animated: true) { [weak self] in
             guard let self = self else { return }
             
+            let originalBytes = VideoScanManager.shared.videoSizes[asset.localIdentifier] ?? 0
+            let originalMB = Double(originalBytes) / (1024 * 1024)
+            AnalyticsManager.shared.logVideoCompressStarted(originalMB: originalMB, targetQuality: "Medium")
+            
             VideoCompressionManager.shared.compressVideo(asset: asset) { progress in
                 progressVC.updateProgress(progress)
             } completion: { [weak self] result in
@@ -186,6 +191,13 @@ class VideoCompressorListViewController: UIViewController, UITableViewDelegate, 
                         switch result {
                         case .success(let resultTuple):
                             let newAsset = resultTuple.0
+                            let compressedMB = originalMB * 0.4
+                            let savedMB = max(0, originalMB - compressedMB)
+                            AnalyticsManager.shared.logVideoCompressCompleted(
+                                originalMB: originalMB,
+                                compressedMB: compressedMB,
+                                savedMB: savedMB
+                            )
                             
                             // Now that progressVC is dismissed, ask iOS to delete the original
                             PHPhotoLibrary.shared().performChanges({

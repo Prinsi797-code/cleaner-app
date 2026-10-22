@@ -10,6 +10,7 @@ import CoreData
 import FirebaseCore
 import FirebaseAnalytics
 import GoogleMobileAds
+import FirebaseCrashlyticsSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
