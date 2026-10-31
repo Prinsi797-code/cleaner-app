@@ -81,7 +81,9 @@ class Onboarding1VC: UIViewController {
         contentView.addSubview(illustrationShadowContainer)
         
         // Inner rounded image view
-        illustrationView.image = UIImage(named: "OnboardingStorage")
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        let imageName = isPad ? "OnboardingStorage_iPad" : "OnboardingStorage"
+        illustrationView.image = UIImage(named: imageName) ?? UIImage(named: "OnboardingStorage")
         illustrationView.contentMode = .scaleAspectFill
         illustrationView.layer.cornerRadius = 24
         illustrationView.clipsToBounds = true

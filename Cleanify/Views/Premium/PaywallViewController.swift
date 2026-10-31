@@ -44,11 +44,18 @@ class PaywallViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let isDark = UserDefaults.standard.object(forKey: "isDarkModeForced") as? Bool {
+            overrideUserInterfaceStyle = isDark ? .dark : .light
+        }
         setupUI()
         setupConstraints()
         
         // Fetch products
         loadProducts()
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return traitCollection.userInterfaceStyle == .dark ? .lightContent : .darkContent
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -61,13 +68,27 @@ class PaywallViewController: UIViewController {
         backgroundGradient.frame = view.bounds
     }
     
-    private func setupUI() {
-        view.backgroundColor = .systemBackground
-        
+    private func updateGradientColors() {
         backgroundGradient.colors = [
-            UIColor.systemBlue.withAlphaComponent(0.2).cgColor,
-            UIColor.systemBackground.cgColor
+            UIColor.systemBlue.withAlphaComponent(0.12).cgColor,
+            UIColor.systemGroupedBackground.cgColor
         ]
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateGradientColors()
+        featuresContainerView?.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
+        for card in optionCards {
+            card.traitCollectionDidChange(previousTraitCollection)
+        }
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .systemGroupedBackground
+        
+        updateGradientColors()
         backgroundGradient.locations = [0.0, 0.4]
         view.layer.insertSublayer(backgroundGradient, at: 0)
         
@@ -78,14 +99,15 @@ class PaywallViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
         
-        // Close Button
+        // Close Button (Fixed above scroll view)
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
-        closeButton.tintColor = .label
-        closeButton.backgroundColor = .clear
+        closeButton.tintColor = .secondaryLabel
+        closeButton.backgroundColor = UIColor.secondarySystemFill
         closeButton.layer.cornerRadius = 16
+        closeButton.clipsToBounds = true
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.addTarget(self, action: #selector(didTapClose), for: .touchUpInside)
-        contentView.addSubview(closeButton)
+        view.addSubview(closeButton)
         
         // Premium Badge Pill
         let badgeContainer = UIView()
@@ -336,12 +358,12 @@ class PaywallViewController: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            closeButton.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 0),
-            closeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             closeButton.widthAnchor.constraint(equalToConstant: 32),
             closeButton.heightAnchor.constraint(equalToConstant: 32),
             
-            premiumBadgeView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 20),
+            premiumBadgeView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 56),
             premiumBadgeView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             
             headerTextStack.topAnchor.constraint(equalTo: premiumBadgeView.bottomAnchor, constant: 16),
@@ -380,6 +402,12 @@ class PaywallViewController: UIViewController {
         let featuresContainer = UIView()
         featuresContainer.backgroundColor = .secondarySystemGroupedBackground
         featuresContainer.layer.cornerRadius = 16
+        featuresContainer.layer.borderWidth = 1.0
+        featuresContainer.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
+        featuresContainer.layer.shadowColor = UIColor.black.cgColor
+        featuresContainer.layer.shadowOpacity = 0.04
+        featuresContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
+        featuresContainer.layer.shadowRadius = 8
         featuresContainer.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(featuresContainer)
         
@@ -654,7 +682,11 @@ class SubscriptionOptionCard: UIButton {
         backgroundColor = .secondarySystemGroupedBackground
         layer.cornerRadius = 20
         layer.borderWidth = 1.5
-        layer.borderColor = UIColor.systemGray4.cgColor
+        layer.borderColor = UIColor.separator.withAlphaComponent(0.4).cgColor
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.04
+        layer.shadowOffset = CGSize(width: 0, height: 4)
+        layer.shadowRadius = 8
         translatesAutoresizingMaskIntoConstraints = false
         
         heightAnchor.constraint(greaterThanOrEqualToConstant: 88).isActive = true
@@ -785,14 +817,22 @@ class SubscriptionOptionCard: UIButton {
             
         } else {
             backgroundColor = .secondarySystemGroupedBackground
-            layer.borderColor = UIColor.systemGray4.cgColor
+            layer.borderColor = UIColor.separator.withAlphaComponent(0.4).cgColor
             layer.borderWidth = 1.5
             
-            layer.shadowOpacity = 0
+            layer.shadowColor = UIColor.black.cgColor
+            layer.shadowOpacity = 0.04
+            layer.shadowOffset = CGSize(width: 0, height: 4)
+            layer.shadowRadius = 8
             
             selectionIndicator.image = UIImage(systemName: "circle")
             selectionIndicator.tintColor = .systemGray3
         }
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateSelectionState()
     }
 }
 
