@@ -1,24 +1,35 @@
+//
+//  AdManager.swift
+//  Cleanify
+//
+
 import UIKit
 import GoogleMobileAds
 import FirebaseRemoteConfig
 
-class AdManager: NSObject, FullScreenContentDelegate {
+class AdManager: NSObject, FullScreenContentDelegate, BannerViewDelegate, NativeAdLoaderDelegate {
     static let shared = AdManager()
     
-    // Remote Config parameter values with screenshot defaults
-    var appOpenId: String = "ca-app-pub-3940256099942544/5575463023"
-    var mainOpenFlag: Int = 3
-    
-    var mainBannerId: String = "ca-app-pub-3940256099942544/2934735716"
-    var mainBannerFlag: Int = 1
-    
-    var mainInterId: String = "ca-app-pub-3940256099942544/4411468910"
-    var mainInterFlag: Int = 3
+    // Remote Config fetched parameter values (no static defaults)
+    var appOpenId: String = ""
+    var mainBannerId: String = ""
+    var mainInterId: String = ""
     
     private var appOpenAd: AppOpenAd?
     private var isLoadingAppOpenAd = false
     private var isShowingAppOpenAd = false
     private var loadTime: Date?
+    
+    // MARK: - Banner Preload Properties
+    private var preloadedBanners: [String: BannerView] = [:]
+    private var preloadedBannerReadyPlacements: Set<String> = []
+    private var loadingBannerPlacements: Set<String> = []
+    
+    // MARK: - Native Preload Properties
+    private var preloadedNativeAds: [String: NativeAd] = [:]
+    private var loadingNativePlacements: Set<String> = []
+    private var nativeAdLoaders: [String: AdLoader] = [:]
+    private var placementToggleKeys: [String: String] = [:]
     
     override private init() {
         super.init()
@@ -33,99 +44,154 @@ class AdManager: NSObject, FullScreenContentDelegate {
     func fetchRemoteConfig(completion: (() -> Void)? = nil) {
         let remoteConfig = RemoteConfig.remoteConfig()
         let settings = RemoteConfigSettings()
-        settings.minimumFetchInterval = 0 // Instant fetch for development/testing
+        settings.minimumFetchInterval = 0
         remoteConfig.configSettings = settings
-        
-        let defaults: [String: NSObject] = [
-            "app_open_id": "ca-app-pub-3940256099942544/5575463023" as NSObject,
-            "main_open_flag": "3" as NSObject,
-            "main_banner_id": "ca-app-pub-3940256099942544/2934735716" as NSObject,
-            "main_banner_flag": "1" as NSObject,
-            "main_inter_id": "ca-app-pub-3940256099942544/4411468910" as NSObject,
-            "main_inter_flag": "3" as NSObject
-        ]
-        remoteConfig.setDefaults(defaults)
         
         remoteConfig.fetchAndActivate { [weak self] status, error in
             guard let self = self else { return }
             
-            let openId = remoteConfig.configValue(forKey: "app_open_id").stringValue ?? ""
-            if !openId.isEmpty {
+            let openId = (remoteConfig.configValue(forKey: "main_app_open_id").stringValue ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !openId.isEmpty && openId != "(empty string)" {
                 self.appOpenId = openId
             }
             
-            let openFlagStr = remoteConfig.configValue(forKey: "main_open_flag").stringValue ?? ""
-            if let val = Int(openFlagStr) {
-                self.mainOpenFlag = val
-            }
-            
-            let bannerId = remoteConfig.configValue(forKey: "main_banner_id").stringValue ?? ""
-            if !bannerId.isEmpty {
+            let bannerId = (remoteConfig.configValue(forKey: "main_banner_id").stringValue ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !bannerId.isEmpty && bannerId != "(empty string)" {
                 self.mainBannerId = bannerId
             }
             
-            let bannerFlagStr = remoteConfig.configValue(forKey: "main_banner_flag").stringValue ?? ""
-            if let val = Int(bannerFlagStr) {
-                self.mainBannerFlag = val
-            }
+            print("[AdManager] Remote Config loaded: appOpenId=\(self.appOpenId), mainBannerId=\(self.mainBannerId)")
             
-            let interId = remoteConfig.configValue(forKey: "main_inter_id").stringValue ?? ""
-            if !interId.isEmpty {
-                self.mainInterId = interId
-            }
-            
-            let interFlagStr = remoteConfig.configValue(forKey: "main_inter_flag").stringValue ?? ""
-            if let val = Int(interFlagStr) {
-                self.mainInterFlag = val
-            }
-            
-            print("[AdManager] Remote Config loaded: app_open_id=\(self.appOpenId), main_open_flag=\(self.mainOpenFlag), main_banner_id=\(self.mainBannerId), main_banner_flag=\(self.mainBannerFlag)")
-            
-            self.loadAppOpenAd()
+            self.preloadCommonAds()
             completion?()
         }
     }
     
-    // MARK: - Ad Frequency Flag Logic
-    // 0 -> don't show ads
-    // 1 -> once in a lifetime
-    // 2 -> once in a day
-    // 3 -> every time
-    func shouldShowAd(flag: Int, key: String) -> Bool {
-        switch flag {
-        case 0:
-            return false
-        case 1:
-            let shown = UserDefaults.standard.bool(forKey: "ad_shown_lifetime_\(key)")
-            return !shown
-        case 2:
-            let lastDate = UserDefaults.standard.string(forKey: "ad_shown_daily_\(key)") ?? ""
-            let today = todayString()
-            return lastDate != today
-        case 3:
-            return true
-        default:
-            return flag > 0
+    // MARK: - Preloading
+    func preloadCommonAds() {
+        if PremiumManager.shared.isPremium { return }
+        preloadNativeAd(placementIdKey: "main_preload_native_id", toggleKey: "main_banner_show")
+        preloadBanner(placementIdKey: "main_preload_banner_id", toggleKey: "main_banner_show")
+        preloadBanner(placementIdKey: "main_banner_id", toggleKey: "main_banner_show")
+        
+        // Common & Sub Section Ads
+        SettingsInterstitialManager.shared.preloadInterstitialAd()
+        preloadNativeAd(placementIdKey: "sub_native_id", toggleKey: "sub_native_show")
+    }
+    
+    // MARK: - Banner Ads Preload
+    func preloadBanner(placementIdKey: String, toggleKey: String) {
+        if PremiumManager.shared.isPremium { return }
+        placementToggleKeys[placementIdKey] = toggleKey
+        guard preloadedBanners[placementIdKey] == nil, !loadingBannerPlacements.contains(placementIdKey) else { return }
+        
+        let rc = RemoteConfig.remoteConfig()
+        let isEnabled = rc.configValue(forKey: toggleKey).boolValue
+        let adUnitID = (rc.configValue(forKey: placementIdKey).stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard isEnabled, !adUnitID.isEmpty, adUnitID != "(empty string)" else { return }
+        
+        loadingBannerPlacements.insert(placementIdKey)
+        let screenWidth = UIScreen.main.bounds.width
+        let adSize = currentOrientationAnchoredAdaptiveBanner(width: screenWidth)
+        let adView = BannerView(adSize: adSize)
+        adView.adUnitID = adUnitID
+        adView.delegate = self
+        adView.translatesAutoresizingMaskIntoConstraints = false
+        
+        preloadedBanners[placementIdKey] = adView
+        adView.load(Request())
+    }
+    
+    func getPreloadedBanner(placementIdKey: String, for vc: UIViewController) -> (banner: BannerView, isReady: Bool)? {
+        if PremiumManager.shared.isPremium { return nil }
+        guard let banner = preloadedBanners.removeValue(forKey: placementIdKey) else {
+            return nil
+        }
+        let isReady = preloadedBannerReadyPlacements.contains(placementIdKey)
+        preloadedBannerReadyPlacements.remove(placementIdKey)
+        loadingBannerPlacements.remove(placementIdKey)
+        
+        banner.rootViewController = vc
+        let toggle = placementToggleKeys[placementIdKey] ?? "main_banner_show"
+        preloadBanner(placementIdKey: placementIdKey, toggleKey: toggle)
+        return (banner, isReady)
+    }
+    
+    // MARK: - Native Ad Preloading
+    func preloadNativeAd(placementIdKey: String, toggleKey: String) {
+        if PremiumManager.shared.isPremium { return }
+        placementToggleKeys[placementIdKey] = toggleKey
+        guard preloadedNativeAds[placementIdKey] == nil, !loadingNativePlacements.contains(placementIdKey) else { return }
+        
+        let rc = RemoteConfig.remoteConfig()
+        let isEnabled = rc.configValue(forKey: toggleKey).boolValue
+        let adUnitID = (rc.configValue(forKey: placementIdKey).stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard isEnabled, !adUnitID.isEmpty, adUnitID != "(empty string)" else { return }
+        
+        loadingNativePlacements.insert(placementIdKey)
+        let loader = AdLoader(
+            adUnitID: adUnitID,
+            rootViewController: nil,
+            adTypes: [.native],
+            options: nil
+        )
+        loader.delegate = self
+        nativeAdLoaders[placementIdKey] = loader
+        loader.load(Request())
+    }
+    
+    func getPreloadedNativeAd(placementIdKey: String) -> NativeAd? {
+        if PremiumManager.shared.isPremium { return nil }
+        guard let ad = preloadedNativeAds.removeValue(forKey: placementIdKey) else { return nil }
+        let toggle = placementToggleKeys[placementIdKey] ?? "main_banner_show"
+        preloadNativeAd(placementIdKey: placementIdKey, toggleKey: toggle)
+        return ad
+    }
+    
+    // MARK: - BannerViewDelegate
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        print("✅ [AdManager] Preloaded Banner ad loaded successfully!")
+        for (key, banner) in preloadedBanners where banner === bannerView {
+            loadingBannerPlacements.remove(key)
+            preloadedBannerReadyPlacements.insert(key)
         }
     }
     
-    func markAdShown(flag: Int, key: String) {
-        if flag == 1 {
-            UserDefaults.standard.set(true, forKey: "ad_shown_lifetime_\(key)")
-        } else if flag == 2 {
-            UserDefaults.standard.set(todayString(), forKey: "ad_shown_daily_\(key)")
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        print("❌ [AdManager] Preloaded Banner failed to load: \(error.localizedDescription)")
+        for (key, banner) in preloadedBanners where banner === bannerView {
+            loadingBannerPlacements.remove(key)
+            preloadedBanners.removeValue(forKey: key)
+            preloadedBannerReadyPlacements.remove(key)
         }
     }
     
-    private func todayString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
+    // MARK: - NativeAdLoaderDelegate
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
+        print("✅ [AdManager] Preloaded Native Ad received successfully!")
+        for (key, loader) in nativeAdLoaders where loader === adLoader {
+            loadingNativePlacements.remove(key)
+            preloadedNativeAds[key] = nativeAd
+            nativeAdLoaders.removeValue(forKey: key)
+        }
+    }
+    
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
+        print("❌ [AdManager] Preloaded Native Ad failed to load: \(error.localizedDescription)")
+        for (key, loader) in nativeAdLoaders where loader === adLoader {
+            loadingNativePlacements.remove(key)
+            preloadedNativeAds.removeValue(forKey: key)
+            nativeAdLoaders.removeValue(forKey: key)
+        }
     }
     
     // MARK: - App Open Ad Implementation
     func loadAppOpenAd() {
-        guard mainOpenFlag != 0, !isLoadingAppOpenAd else { return }
+        guard !appOpenId.isEmpty, appOpenId != "(empty string)", !isLoadingAppOpenAd else { return }
         isLoadingAppOpenAd = true
         
         let request = Request()
@@ -149,51 +215,14 @@ class AdManager: NSObject, FullScreenContentDelegate {
     }
     
     func showAppOpenAdIfAvailable(viewController: UIViewController? = nil) {
-        guard shouldShowAd(flag: mainOpenFlag, key: "app_open") else {
-            print("[AdManager] App Open Ad suppressed by flag \(mainOpenFlag)")
-            return
-        }
-        
         guard !isShowingAppOpenAd else { return }
-        
         guard let appOpenAd = appOpenAd, wasLoadTimeLessThanFourHoursAgo() else {
             loadAppOpenAd()
             return
         }
-        
         guard let rootVC = viewController ?? topViewController() else { return }
-        
         isShowingAppOpenAd = true
         appOpenAd.present(from: rootVC)
-    }
-    
-    // MARK: - Banner Ad Factory & Attacher
-    func createBannerView(in viewController: UIViewController) -> BannerView? {
-        guard mainBannerFlag > 0 else { return nil }
-        
-        let bannerView = BannerView(adSize: AdSizeBanner)
-        bannerView.adUnitID = mainBannerId
-        bannerView.rootViewController = viewController
-        bannerView.load(Request())
-        return bannerView
-    }
-    
-    func attachBannerAd(to viewController: UIViewController) {
-        // Prevent duplicate banner views on the same controller
-        if viewController.view.subviews.contains(where: { $0 is BannerView }) {
-            return
-        }
-        
-        guard let bannerView = createBannerView(in: viewController) else { return }
-        bannerView.translatesAutoresizingMaskIntoConstraints = false
-        viewController.view.addSubview(bannerView)
-        
-        NSLayoutConstraint.activate([
-            bannerView.bottomAnchor.constraint(equalTo: viewController.view.safeAreaLayoutGuide.bottomAnchor),
-            bannerView.centerXAnchor.constraint(equalTo: viewController.view.centerXAnchor),
-            bannerView.widthAnchor.constraint(equalToConstant: 320),
-            bannerView.heightAnchor.constraint(equalToConstant: 50)
-        ])
     }
     
     // MARK: - FullScreenContentDelegate
@@ -205,7 +234,6 @@ class AdManager: NSObject, FullScreenContentDelegate {
         print("[AdManager] Full screen ad dismissed.")
         isShowingAppOpenAd = false
         if ad is AppOpenAd {
-            markAdShown(flag: mainOpenFlag, key: "app_open")
             appOpenAd = nil
             loadAppOpenAd()
         }

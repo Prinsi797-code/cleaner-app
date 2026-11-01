@@ -336,9 +336,7 @@ class PhotoGridViewController: UIViewController {
     private var isNativeAdEnabled: Bool {
         if PremiumManager.shared.isPremium { return false }
         let remoteConfig = RemoteConfig.remoteConfig()
-        let flagStr = remoteConfig.configValue(forKey: "photos_native_flag").stringValue
-        let flag = Int(flagStr) ?? 3
-        return flag > 0
+        return remoteConfig.configValue(forKey: "sub_native_show").boolValue
     }
     
     private func isAdSection(_ section: Int) -> Bool {

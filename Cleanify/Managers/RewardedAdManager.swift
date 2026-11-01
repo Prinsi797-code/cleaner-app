@@ -14,38 +14,37 @@ class RewardedAdManager: NSObject, FullScreenContentDelegate {
         super.init()
     }
     
+    private func getRewardAdUnitID() -> String? {
+        let rc = RemoteConfig.remoteConfig()
+        let adUnitID = (rc.configValue(forKey: "sub_reward_id").stringValue ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !adUnitID.isEmpty, adUnitID != "(empty string)", (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) else {
+            return nil
+        }
+        return adUnitID
+    }
+    
     func preloadRewardedAd() {
         if PremiumManager.shared.isPremium { return }
         guard rewardedAd == nil, !isLoading else { return }
+        guard let adUnitID = getRewardAdUnitID() else { return }
+        
         isLoading = true
-        
-        let remoteConfig = RemoteConfig.remoteConfig()
-        let adUnitID = remoteConfig.configValue(forKey: "reward_id").stringValue ?? "ca-app-pub-3940256099942544/1712485313"
-        let flagStr = remoteConfig.configValue(forKey: "reward_flag").stringValue ?? ""
-        let flag = Int(flagStr) ?? 1
-        
-        if shouldShowAd(flag: flag, key: "reward") && (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) {
-            RewardedAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
-                self?.isLoading = false
-                if let error = error {
-                    print("[RewardedAdManager] Failed to load: \(error.localizedDescription)")
-                    return
-                }
-                self?.rewardedAd = ad
-                self?.rewardedAd?.fullScreenContentDelegate = self
-                print("[RewardedAdManager] Preloaded successfully!")
+        RewardedAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
+            self?.isLoading = false
+            if let error = error {
+                print("[RewardedAdManager] Failed to load: \(error.localizedDescription)")
+                return
             }
-        } else {
-            isLoading = false
+            self?.rewardedAd = ad
+            self?.rewardedAd?.fullScreenContentDelegate = self
+            print("[RewardedAdManager] Preloaded successfully!")
         }
     }
     
     func isAdRequired(key: String = "reward") -> Bool {
         if PremiumManager.shared.isPremium { return false }
-        let remoteConfig = RemoteConfig.remoteConfig()
-        let flagStr = remoteConfig.configValue(forKey: "reward_flag").stringValue ?? ""
-        let flag = Int(flagStr) ?? 1
-        return shouldShowAd(flag: flag, key: key)
+        return getRewardAdUnitID() != nil
     }
     
     func canShowAd() -> Bool {
@@ -62,28 +61,23 @@ class RewardedAdManager: NSObject, FullScreenContentDelegate {
             completion(true)
             return
         }
-        
-        let remoteConfig = RemoteConfig.remoteConfig()
-        let adUnitID = remoteConfig.configValue(forKey: "reward_id").stringValue ?? "ca-app-pub-3940256099942544/1712485313"
-        let flagStr = remoteConfig.configValue(forKey: "reward_flag").stringValue ?? ""
-        let flag = Int(flagStr) ?? 1
-        
-        if shouldShowAd(flag: flag, key: "reward") && (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) {
-            isLoading = true
-            RewardedAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
-                self?.isLoading = false
-                if let error = error {
-                    print("[RewardedAdManager] On demand load failed: \(error.localizedDescription)")
-                    completion(false)
-                    return
-                }
-                self?.rewardedAd = ad
-                self?.rewardedAd?.fullScreenContentDelegate = self
-                print("[RewardedAdManager] Loaded ad on demand successfully!")
-                completion(true)
-            }
-        } else {
+        guard let adUnitID = getRewardAdUnitID() else {
             completion(false)
+            return
+        }
+        
+        isLoading = true
+        RewardedAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
+            self?.isLoading = false
+            if let error = error {
+                print("[RewardedAdManager] On demand load failed: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            self?.rewardedAd = ad
+            self?.rewardedAd?.fullScreenContentDelegate = self
+            print("[RewardedAdManager] Loaded ad on demand successfully!")
+            completion(true)
         }
     }
     
@@ -100,29 +94,16 @@ class RewardedAdManager: NSObject, FullScreenContentDelegate {
             return
         }
         
-        let remoteConfig = RemoteConfig.remoteConfig()
-        let flagStr = remoteConfig.configValue(forKey: "reward_flag").stringValue ?? ""
-        let flag = Int(flagStr) ?? 1
-        
         self.earnedReward = false
         self.pendingCompletionAction = completion
         ad.present(from: vc) { [weak self] in
             // Reward granted
             AnalyticsManager.shared.logRewardedAdCompleted(rewardType: "compress_or_clean")
-            self?.markAdShown(flag: flag, key: "reward")
             self?.earnedReward = true
         }
         
         self.rewardedAd = nil
         preloadRewardedAd()
-    }
-    
-    private func shouldShowAd(flag: Int, key: String) -> Bool {
-        return flag == 1
-    }
-    
-    private func markAdShown(flag: Int, key: String) {
-        // Rewarded ads do not use frequency capping here.
     }
     
     // MARK: - FullScreenContentDelegate

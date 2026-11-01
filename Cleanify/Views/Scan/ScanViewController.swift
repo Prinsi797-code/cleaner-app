@@ -85,10 +85,6 @@ class ScanViewController: UIViewController {
     
     private var ringsTopConstraint: NSLayoutConstraint!
 
-    private var bannerAdHelper: BannerAdHelper?
-    
-
-
     private var deviceName: String {
         return UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
     }
@@ -99,9 +95,6 @@ class ScanViewController: UIViewController {
         setupUI()
         setupConstraints()
         resetToIdleState()
-        
-        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
-        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
         
         // Data was loaded by SplashViewController before this screen appears
         let hasData = !PhotoScanManager.shared.allPhotos.isEmpty || !VideoScanManager.shared.allVideos.isEmpty || !ContactScanManager.shared.allContacts.isEmpty

@@ -240,7 +240,7 @@ class Onboarding4VC: UIViewController {
         UserDefaults.standard.set(true, forKey: "onboarding_completed")
         if let window = self.view.window {
             UIView.transition(with: window, duration: 0.45, options: .transitionCrossDissolve, animations: {
-                window.rootViewController = MainTabBarController()
+                window.rootViewController = RootContainerVC()
             }, completion: nil)
         }
     }

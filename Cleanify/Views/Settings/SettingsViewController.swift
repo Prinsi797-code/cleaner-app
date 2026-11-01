@@ -44,17 +44,12 @@ class SettingsViewController: UIViewController {
         }
     }
     
-    private var bannerAdHelper: BannerAdHelper?
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadSettings()
         
         NotificationCenter.default.addObserver(self, selector: #selector(premiumStatusChanged), name: .premiumStatusChanged, object: nil)
-        
-        bannerAdHelper = BannerAdHelper(viewController: self, bannerIDKey: "main_banner_id", bannerFlagKey: "main_banner_flag")
-        bannerAdHelper?.fetchRemoteConfigAndLoadBannerAd()
         
         SettingsInterstitialManager.shared.preloadInterstitialAd()
     }

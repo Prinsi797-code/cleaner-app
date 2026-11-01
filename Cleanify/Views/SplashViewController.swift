@@ -196,7 +196,7 @@ class SplashViewController: UIViewController {
         guard let window = view.window else { return }
         
         let onboardingCompleted = UserDefaults.standard.bool(forKey: "onboarding_completed")
-        let nextVC: UIViewController = onboardingCompleted ? MainTabBarController() : Onboarding1VC()
+        let nextVC: UIViewController = onboardingCompleted ? RootContainerVC() : Onboarding1VC()
         
         UIView.animate(withDuration: 0.4, animations: {
             self.iconImageView.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)

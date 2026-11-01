@@ -1,14 +1,20 @@
+//
+//  VideosNativeAdHelper.swift
+//  Cleanify
+//
+
 import UIKit
 import FirebaseRemoteConfig
 import GoogleMobileAds
 
 class VideosNativeAdHelper: NSObject, NativeAdLoaderDelegate {
-    private var adLoader: AdLoader?
-    private var nativeAd: NativeAd?
+    
     private weak var containerView: UIView?
     private weak var viewController: UIViewController?
     private weak var heightConstraint: NSLayoutConstraint?
     
+    private var adLoader: AdLoader?
+    private var nativeAd: NativeAd?
     var onAdLoaded: (() -> Void)?
     
     init(containerView: UIView, viewController: UIViewController, heightConstraint: NSLayoutConstraint? = nil) {
@@ -20,8 +26,8 @@ class VideosNativeAdHelper: NSObject, NativeAdLoaderDelegate {
     
     func fetchRemoteConfigAndLoadNativeAd() {
         if PremiumManager.shared.isPremium {
-            heightConstraint?.constant = 0
-            containerView?.isHidden = true
+            self.heightConstraint?.constant = 0
+            self.containerView?.isHidden = true
             return
         }
         
@@ -33,15 +39,19 @@ class VideosNativeAdHelper: NSObject, NativeAdLoaderDelegate {
         remoteConfig.fetchAndActivate { [weak self] status, error in
             guard let self = self, let vc = self.viewController else { return }
             
-            let adUnitID = remoteConfig.configValue(forKey: "videos_native_id").stringValue
-            let flagStr = remoteConfig.configValue(forKey: "videos_native_flag").stringValue
-            let flag = Int(flagStr) ?? 3
+            let isEnabled = remoteConfig.configValue(forKey: "sub_native_show").boolValue
+            let adUnitID = (remoteConfig.configValue(forKey: "sub_native_id").stringValue ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             
-            let finalID = adUnitID.isEmpty ? "ca-app-pub-3940256099942544/3986624511" : adUnitID
-            print("[VideosNativeAdHelper] Remote config: ID=\(finalID), Flag=\(flag)")
+            print("[VideosNativeAdHelper] Remote config: ID=\(adUnitID), isShow=\(isEnabled)")
             
-            if self.shouldShowAd(flag: flag, key: "videos_native") && (finalID.contains("ca-app-pub-") || finalID.contains("/")) {
-                self.loadNativeAd(adUnitID: finalID, in: vc)
+            if isEnabled && !adUnitID.isEmpty && adUnitID != "(empty string)" && (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) {
+                if let preloaded = AdManager.shared.getPreloadedNativeAd(placementIdKey: "sub_native_id"), let container = self.containerView {
+                    self.setupNativeAdView(with: preloaded, in: container)
+                    self.onAdLoaded?()
+                    return
+                }
+                self.loadNativeAd(adUnitID: adUnitID, in: vc)
             } else {
                 self.heightConstraint?.constant = 0
                 self.containerView?.isHidden = true
@@ -63,12 +73,8 @@ class VideosNativeAdHelper: NSObject, NativeAdLoaderDelegate {
         adLoader?.load(Request())
     }
     
-    // MARK: - NativeAdLoaderDelegate
-    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
-        print("[VideosNativeAdHelper] Native Ad loaded successfully!")
+    func setupNativeAdView(with nativeAd: NativeAd, in containerView: UIView) {
         self.nativeAd = nativeAd
-        guard let containerView = containerView else { return }
-        
         self.onAdLoaded?()
         
         containerView.subviews.forEach { $0.removeFromSuperview() }
@@ -161,21 +167,20 @@ class VideosNativeAdHelper: NSObject, NativeAdLoaderDelegate {
         ])
         
         adView.nativeAd = nativeAd
+        heightConstraint?.constant = 130
+        containerView.isHidden = false
+    }
+    
+    // MARK: - NativeAdLoaderDelegate
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
+        print("[VideosNativeAdHelper] Native Ad loaded successfully!")
+        guard let containerView = containerView else { return }
+        setupNativeAdView(with: nativeAd, in: containerView)
     }
     
     func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
         print("[VideosNativeAdHelper] Failed to load native ad: \(error.localizedDescription)")
         self.heightConstraint?.constant = 0
         self.containerView?.isHidden = true
-    }
-    
-    private func shouldShowAd(flag: Int, key: String) -> Bool {
-        return flag > 0
-    }
-    
-    private func todayString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
     }
 }

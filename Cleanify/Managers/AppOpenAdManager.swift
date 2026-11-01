@@ -24,41 +24,24 @@ class AppOpenAdManager: NSObject, FullScreenContentDelegate {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // MARK: - Ad Frequency Flag Logic
-    // 0 -> don't show ads
-    // 1 -> once in a lifetime
-    // 2 -> once in a day
-    // 3 -> every time
-    private func shouldShowAd(flag: Int, key: String) -> Bool {
-        switch flag {
-        case 0:
-            return false
-        case 1:
-            let shown = UserDefaults.standard.bool(forKey: "ad_shown_lifetime_\(key)")
-            return !shown
-        case 2:
-            let lastDate = UserDefaults.standard.string(forKey: "ad_shown_daily_\(key)") ?? ""
-            let today = todayString()
-            return lastDate != today
-        case 3:
-            return true
-        default:
-            return flag > 0
-        }
+    // MARK: - Remote Config Helpers
+    private func isAppOpenAdEnabled(remoteConfig: RemoteConfig) -> Bool {
+        if PremiumManager.shared.isPremium { return false }
+        return remoteConfig.configValue(forKey: "main_app_open_show").boolValue
     }
     
-    private func markAdShown(flag: Int, key: String) {
-        if flag == 1 {
-            UserDefaults.standard.set(true, forKey: "ad_shown_lifetime_\(key)")
-        } else if flag == 2 {
-            UserDefaults.standard.set(todayString(), forKey: "ad_shown_daily_\(key)")
+    private func getAppOpenAdUnitID(remoteConfig: RemoteConfig) -> String? {
+        let mainID = (remoteConfig.configValue(forKey: "main_app_open_id").stringValue ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !mainID.isEmpty && mainID != "(empty string)" {
+            return mainID
         }
-    }
-    
-    private func todayString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
+        let fallbackID = (remoteConfig.configValue(forKey: "app_open_id").stringValue ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !fallbackID.isEmpty && fallbackID != "(empty string)" {
+            return fallbackID
+        }
+        return nil
     }
     
     // MARK: - Fetch and Load Ad
@@ -75,32 +58,24 @@ class AppOpenAdManager: NSObject, FullScreenContentDelegate {
         remoteConfig.fetchAndActivate { [weak self] status, error in
             guard let self = self else { return }
             
-            let adUnitID = remoteConfig.configValue(forKey: "app_open_id").stringValue ?? "ca-app-pub-3940256099942544/5575463023"
-            
-            // Check main_open_flag or fallback app_open_flag
-            var adFlag = 3
-            if let flagVal = Int(remoteConfig.configValue(forKey: "main_open_flag").stringValue ?? "") {
-                adFlag = flagVal
-            } else if let flagVal = Int(remoteConfig.configValue(forKey: "app_open_flag").stringValue ?? "") {
-                adFlag = flagVal
+            let isEnabled = self.isAppOpenAdEnabled(remoteConfig: remoteConfig)
+            guard isEnabled, let adUnitID = self.getAppOpenAdUnitID(remoteConfig: remoteConfig) else {
+                self.isLoadingAd = false
+                print("[AppOpenAdManager] Ad disabled via main_app_open_show or empty ID from Remote Config.")
+                return
             }
             
-            print("AppOpenAdManager remote config fetched: ID=\(adUnitID), Flag=\(adFlag)")
+            print("[AppOpenAdManager] Remote Config: ID=\(adUnitID), isShow=\(isEnabled)")
             
-            if self.shouldShowAd(flag: adFlag, key: "app_open") && (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) {
-                AppOpenAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
-                    self?.isLoadingAd = false
-                    if let error = error {
-                        print("AppOpenAdManager failed to load: \(error.localizedDescription)")
-                        return
-                    }
-                    self?.appOpenAd = ad
-                    self?.appOpenAd?.fullScreenContentDelegate = self
-                    print("AppOpenAdManager loaded successfully!")
+            AppOpenAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
+                self?.isLoadingAd = false
+                if let error = error {
+                    print("[AppOpenAdManager] Failed to load: \(error.localizedDescription)")
+                    return
                 }
-            } else {
-                self.isLoadingAd = false
-                print("AppOpenAdManager: Invalid or disabled ID/Flag. Skipping load.")
+                self?.appOpenAd = ad
+                self?.appOpenAd?.fullScreenContentDelegate = self
+                print("[AppOpenAdManager] Loaded successfully!")
             }
         }
     }
@@ -110,6 +85,13 @@ class AppOpenAdManager: NSObject, FullScreenContentDelegate {
             appOpenAd = nil
             return
         }
+        
+        let remoteConfig = RemoteConfig.remoteConfig()
+        guard isAppOpenAdEnabled(remoteConfig: remoteConfig) else {
+            print("[AppOpenAdManager] Ad disabled via main_app_open_show.")
+            return
+        }
+        
         guard let ad = appOpenAd else {
             fetchAndLoadAd()
             return
@@ -117,7 +99,7 @@ class AppOpenAdManager: NSObject, FullScreenContentDelegate {
         
         let now = Date()
         if let lastShow = lastAdShowTime, now.timeIntervalSince(lastShow) < 5.0 {
-            print("AppOpenAdManager: Cooldown active. Skipping presentation.")
+            print("[AppOpenAdManager] Cooldown active. Skipping presentation.")
             return
         }
         
@@ -131,31 +113,36 @@ class AppOpenAdManager: NSObject, FullScreenContentDelegate {
         }
     }
     
+    // MARK: - Lifecycle Notifications
     @objc private func applicationWillEnterForeground() {
         showAdIfAvailable()
     }
     
-    private func getTopMostViewController() -> UIViewController? {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first(where: { $0.isKeyWindow }) else {
-            return nil
-        }
-        var topVC = window.rootViewController
-        while let presented = topVC?.presentedViewController {
-            topVC = presented
-        }
-        return topVC
-    }
-    
-    // MARK: - FullScreenContentDelegate
+    // MARK: - GADFullScreenContentDelegate
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-        print("AppOpenAdManager: Ad dismissed successfully.")
-        let remoteConfig = RemoteConfig.remoteConfig()
-        let flag = Int(remoteConfig.configValue(forKey: "main_open_flag").stringValue ?? "") ?? 3
-        markAdShown(flag: flag, key: "app_open")
+        print("[AppOpenAdManager] Full screen content dismissed.")
+        appOpenAd = nil
+        fetchAndLoadAd()
     }
     
     func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        print("AppOpenAdManager: Failed to present: \(error.localizedDescription)")
+        print("[AppOpenAdManager] Failed to present full screen content: \(error.localizedDescription)")
+        appOpenAd = nil
+        fetchAndLoadAd()
+    }
+    
+    // MARK: - Topmost View Controller Helper
+    private func getTopMostViewController() -> UIViewController? {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first(where: { $0.isKeyWindow }),
+              let rootViewController = window.rootViewController else {
+            return nil
+        }
+        
+        var topVC = rootViewController
+        while let presented = topVC.presentedViewController {
+            topVC = presented
+        }
+        return topVC
     }
 }

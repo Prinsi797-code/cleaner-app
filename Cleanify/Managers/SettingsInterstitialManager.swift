@@ -28,25 +28,26 @@ class SettingsInterstitialManager: NSObject, FullScreenContentDelegate {
         remoteConfig.fetchAndActivate { [weak self] status, error in
             guard let self = self else { return }
             
-            let adUnitID = remoteConfig.configValue(forKey: "setting_inter_id").stringValue ?? "ca-app-pub-3940256099942544/4411468910"
-            let flagStr = remoteConfig.configValue(forKey: "setting_inter_flag").stringValue ?? ""
-            let flag = Int(flagStr) ?? 3
+            let isEnabled = remoteConfig.configValue(forKey: "common_inter_show").boolValue
+            let adUnitID = (remoteConfig.configValue(forKey: "common_inter_id").stringValue ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             
-            print("[SettingsInterstitialManager] Remote Config: ID=\(adUnitID), Flag=\(flag)")
+            print("[SettingsInterstitialManager] Remote Config: ID=\(adUnitID), isShow=\(isEnabled)")
             
-            if self.shouldShowAd(flag: flag, key: "setting_inter") && (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) {
-                InterstitialAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
-                    self?.isLoading = false
-                    if let error = error {
-                        print("[SettingsInterstitialManager] Failed to load: \(error.localizedDescription)")
-                        return
-                    }
-                    self?.interstitialAd = ad
-                    self?.interstitialAd?.fullScreenContentDelegate = self
-                    print("[SettingsInterstitialManager] Preloaded successfully!")
-                }
-            } else {
+            guard isEnabled, !adUnitID.isEmpty, adUnitID != "(empty string)", (adUnitID.contains("ca-app-pub-") || adUnitID.contains("/")) else {
                 self.isLoading = false
+                return
+            }
+            
+            InterstitialAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
+                self?.isLoading = false
+                if let error = error {
+                    print("[SettingsInterstitialManager] Failed to load: \(error.localizedDescription)")
+                    return
+                }
+                self?.interstitialAd = ad
+                self?.interstitialAd?.fullScreenContentDelegate = self
+                print("[SettingsInterstitialManager] Preloaded successfully!")
             }
         }
     }
@@ -59,10 +60,8 @@ class SettingsInterstitialManager: NSObject, FullScreenContentDelegate {
         }
         
         let remoteConfig = RemoteConfig.remoteConfig()
-        let flagStr = remoteConfig.configValue(forKey: "setting_inter_flag").stringValue ?? ""
-        let flag = Int(flagStr) ?? 3
-        
-        guard shouldShowAd(flag: flag, key: "setting_inter") else {
+        let isEnabled = remoteConfig.configValue(forKey: "common_inter_show").boolValue
+        guard isEnabled else {
             dismissAction()
             return
         }
@@ -84,41 +83,7 @@ class SettingsInterstitialManager: NSObject, FullScreenContentDelegate {
         self.pendingDismissAction = dismissAction
         ad.present(from: vc)
         interstitialAd = nil
-        markAdShown(flag: flag, key: "setting_inter")
         preloadInterstitialAd()
-    }
-    
-    // MARK: - Frequency Flag Checker
-    private func shouldShowAd(flag: Int, key: String) -> Bool {
-        switch flag {
-        case 0:
-            return false
-        case 1:
-            let shown = UserDefaults.standard.bool(forKey: "ad_shown_lifetime_\(key)")
-            return !shown
-        case 2:
-            let lastDate = UserDefaults.standard.string(forKey: "ad_shown_daily_\(key)") ?? ""
-            let today = todayString()
-            return lastDate != today
-        case 3:
-            return true
-        default:
-            return flag > 0
-        }
-    }
-    
-    private func markAdShown(flag: Int, key: String) {
-        if flag == 1 {
-            UserDefaults.standard.set(true, forKey: "ad_shown_lifetime_\(key)")
-        } else if flag == 2 {
-            UserDefaults.standard.set(todayString(), forKey: "ad_shown_daily_\(key)")
-        }
-    }
-    
-    private func todayString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
     }
     
     // MARK: - FullScreenContentDelegate

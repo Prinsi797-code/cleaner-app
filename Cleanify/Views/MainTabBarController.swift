@@ -11,11 +11,10 @@ struct AppState {
     static var hasShownRescanPopup = false
 }
 
-class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
+class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.delegate = self
         setupTabs()
         setupAppearance()
     }
@@ -27,20 +26,14 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
         let contactsVC = ContactCleanerViewController()
         let settingsVC = SettingsViewController()
         
-        // Wrap in Navigation Controllers for standard navigation UI
         let symbolName: String
-
         if #available(iOS 26.0, *) {
             symbolName = "wand.and.sparkles"
         } else {
             symbolName = "wand.and.stars"
         }
 
-        let scanNav = createNav(
-            with: scanVC,
-            title: "Scan",
-            image: UIImage(systemName: symbolName)
-        )
+        let scanNav = createNav(with: scanVC, title: "Scan", image: UIImage(systemName: symbolName))
         let photosNav = createNav(with: photosVC, title: "Photos", image: UIImage(systemName: "photo.on.rectangle"))
         let videosNav = createNav(with: videosVC, title: "Videos", image: UIImage(systemName: "video"))
         let contactsNav = createNav(with: contactsVC, title: "Contacts", image: UIImage(systemName: "person.crop.circle"))
@@ -59,17 +52,11 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     }
     
     private func setupAppearance() {
-        
-        //tabBar.backgroundColor = .systemBackground
         tabBar.tintColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
         tabBar.unselectedItemTintColor = .secondaryLabel
         
-        // Dynamic bottom border styling
-        //tabBar.shadowImage = UIImage()
-        //tabBar.backgroundImage = UIImage()
-        
         let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
+        appearance.configureWithDefaultBackground()
         appearance.backgroundColor = .systemBackground
         
         tabBar.standardAppearance = appearance
@@ -78,8 +65,18 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
         }
     }
     
-    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-
+    func attachNavigationDelegates(_ delegate: UINavigationControllerDelegate) {
+        for vc in viewControllers ?? [] {
+            if let nav = vc as? UINavigationController {
+                nav.delegate = delegate
+            }
+        }
+    }
+    
+    override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
+        if let navDelegate = parent as? UINavigationControllerDelegate {
+            attachNavigationDelegates(navDelegate)
+        }
     }
 }
