@@ -3,4 +3,22 @@
    uuid = "F1F2E713-4573-4ADB-9899-B54224ABD2E8"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A79585B0-A836-4D68-BE0F-BE6CC21E8A31"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Cleanify/Views/Premium/PaywallViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "537"
+            endingLineNumber = "537"
+            landmarkName = "didTapSubscribe()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>
